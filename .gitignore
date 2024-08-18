@@ -1,0 +1,15 @@
+.venv
+venv/
+.DS_Store
+.env
+.env.prod
+.idea/*
+__pycache__/
+flask_session/
+static/uploads/
+dump.rdb
+*.rdb
+.heroku/
+.coverage
+.coverage.*
+*.xml

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  local-db:
+    image: postgres:15.5
+    container_name: invoicelytics_postgres
+    environment:
+      POSTGRES_DB: invoicelytics
+      POSTGRES_USER: invoicelytics
+      POSTGRES_PASSWORD: password
+    ports:
+      - "2345:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
