@@ -21,6 +21,8 @@ faker = "^27.0.0"
 testcontainers-core = "^0.0.1rc1"
 testcontainers-postgres = "^0.0.1rc1"
 flake8 = "^7.1.1"
+openai = "^1.42.0"
+black = "^24.8.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -19,3 +19,8 @@ class UploadFolder:
         new_directory = os.path.dirname(new_file_path)
         os.makedirs(new_directory, exist_ok=True)
         shutil.move(old_file_path, new_file_path)
+
+    @staticmethod
+    def read_file(path: str) -> bytes:
+        with open(path, "rb") as file:
+            return file.read()

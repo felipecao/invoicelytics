@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid4, UUID
 from tests import test_faker
 
 from sqlalchemy import exists
@@ -21,19 +21,67 @@ class TestInvoiceRepository(BaseRepositoryTest):
     def test_invoice_creation(self):
         invoice_id = uuid4()
         tenant_id = uuid4()
+        status = InvoiceStatus.CREATED
         pdf_file_path = test_faker.file_path(extension="pdf")
 
         self._repository.save(
             Invoice(
                 id=invoice_id,
                 tenant_id=tenant_id,
-                status=InvoiceStatus.CREATED,
+                status=status,
                 pdf_file_path=pdf_file_path,
             )
         )
 
-        self.assertTrue(self._exists_invoice(invoice_id, tenant_id))
+        self.assertTrue(self._exists_invoice(invoice_id, tenant_id, status))
+
+    def test_invoice_update(self):
+        invoice_id = uuid4()
+        tenant_id = uuid4()
+        status = InvoiceStatus.CREATED
+        pdf_file_path = test_faker.file_path(extension="pdf")
+
+        invoice = self._save_entity(
+            Invoice(
+                id=invoice_id,
+                tenant_id=tenant_id,
+                status=status,
+                pdf_file_path=pdf_file_path,
+            )
+        )
+
+        self._repository.update(invoice, {"status": InvoiceStatus.PROCESSED})
+
+        self.assertTrue(self._exists_invoice(invoice_id, tenant_id, InvoiceStatus.PROCESSED))
+
+    def test_find_by_id(self):
+        invoice_id = uuid4()
+        tenant_id = uuid4()
+        status = InvoiceStatus.CREATED
+        pdf_file_path = test_faker.file_path(extension="pdf")
+
+        self._save_entity(
+            Invoice(
+                id=invoice_id,
+                tenant_id=tenant_id,
+                status=status,
+                pdf_file_path=pdf_file_path,
+            )
+        )
+
+        instance = self._repository.find_by_id(invoice_id, tenant_id)
+
+        self.assertIsNotNone(instance)
+        self.assertEqual(status, instance.status)
 
     @staticmethod
-    def _exists_invoice(invoice_id, tenant_id) -> bool:
-        return db.session.scalar(exists().where(Invoice.id == invoice_id).where(Invoice.tenant_id == tenant_id).select())
+    def _exists_invoice(invoice_id: UUID, tenant_id: UUID, status: InvoiceStatus) -> bool:
+        return db.session.scalar(
+            exists().where(Invoice.id == invoice_id).where(Invoice.tenant_id == tenant_id).where(Invoice.status == status).select()
+        )
+
+    @staticmethod
+    def _save_entity(entity):
+        db.session.add(entity)
+        db.session.commit()
+        return entity

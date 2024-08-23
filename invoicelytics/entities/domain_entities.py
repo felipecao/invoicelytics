@@ -48,7 +48,7 @@ class Invoice(Base):
     payee_name = Column(String, nullable=True)
     payee_address = Column(String, nullable=True)
     invoice_number = Column(String, nullable=True, unique=True)
-    issued_date = Column(Date, nullable=True)
+    issue_date = Column(Date, nullable=True)
     total_amount = Column(Float, nullable=True)
     tax_amount = Column(Float, nullable=True)
     due_date = Column(Date, nullable=True)
@@ -58,3 +58,4 @@ class Invoice(Base):
     pdf_file_path = Column(String, nullable=True)
     created_at = Column(DateTime, default=dt.datetime.now(ZoneInfo("UTC")), nullable=True)
     updated_at = Column(DateTime, default=dt.datetime.now(ZoneInfo("UTC")), nullable=True)
+    open_ai_file_id = Column(String, nullable=True)
