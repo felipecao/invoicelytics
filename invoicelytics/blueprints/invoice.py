@@ -62,3 +62,23 @@ class InvoiceBlueprint:
                 return send_file(invoice.pdf_file_path)
             else:
                 return "File not found", 404
+
+        @self.blueprint.route("/invoice/approve/<uuid:invoice_id>", methods=["POST"])
+        def approve_invoice(invoice_id):
+            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+
+            if invoice:
+                self._invoice_repository.update(
+                    invoice,
+                    {
+                        "invoice_number": request.form.get("invoice_number"),
+                        "payee_name": request.form.get("payee_name"),
+                        "due_date": request.form.get("due_date"),
+                        "total_amount": request.form.get("total_amount"),
+                        "status": InvoiceStatus.VALIDATED,
+                    },
+                )
+                flash("Invoice approved successfully")
+            else:
+                flash("Invoice not found", "error")
+            return list_processed_invoices()

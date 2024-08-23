@@ -7,27 +7,28 @@
     <div class="row">
         <div class="col-md-6">
             <h1>Invoice Details</h1>
-            <form>
+            <form action="{{ url_for('invoice_bp.approve_invoice', invoice_id=invoice.id) }}" method="post">
                 <div class="form-group">
                     <label for="invoiceNumber">Invoice Number</label>
-                    <input type="text" class="form-control" id="invoiceNumber" value="{{ invoice.invoice_number }}" readonly>
+                    <input type="text" class="form-control" id="invoiceNumber" name="invoice_number" value="{{ invoice.invoice_number }}">
                 </div>
                 <div class="form-group">
                     <label for="payeeName">Payee Name</label>
-                    <input type="text" class="form-control" id="payeeName" value="{{ invoice.payee_name }}" readonly>
+                    <input type="text" class="form-control" id="payeeName" name="payee_name" value="{{ invoice.payee_name }}">
                 </div>
                 <div class="form-group">
                     <label for="dueDate">Due Date</label>
-                    <input type="text" class="form-control" id="dueDate" value="{{ invoice.due_date }}" readonly>
+                    <input type="text" class="form-control" id="dueDate" name="due_date" value="{{ invoice.due_date }}">
                 </div>
                 <div class="form-group">
                     <label for="totalAmount">Total Amount</label>
-                    <input type="text" class="form-control" id="totalAmount" value="{{ invoice.total_amount }}" readonly>
+                    <input type="text" class="form-control" id="totalAmount" name="total_amount" value="{{ invoice.total_amount }}">
                 </div>
                 <div class="form-group">
                     <label for="status">Status</label>
-                    <input type="text" class="form-control" id="status" value="{{ invoice.status }}" readonly>
+                    <input type="text" class="form-control" id="status" name="status" value="{{ invoice.status }}" readonly>
                 </div>
+                <button type="submit" class="btn btn-primary">Approve</button>
                 <a href="{{ url_for('home_bp.home') }}" class="btn btn-secondary">Back to Home</a>
             </form>
         </div>

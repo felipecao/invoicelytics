@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock, ANY
 from uuid import UUID, uuid4
 
-from invoicelytics.entities.domain_entities import Invoice
+from invoicelytics.entities.domain_entities import Invoice, InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
 from tests import test_faker
 
@@ -134,3 +134,59 @@ class TestInvoiceBlueprint(TestCase):
         self._mock_invoice_repository.find_by_id.assert_called_once_with(invoice_id, UUID("123e4567-e89b-12d3-a456-426614174000"))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, b"File not found")
+
+    @patch("invoicelytics.blueprints.invoice.render_template")
+    @patch("invoicelytics.blueprints.invoice.flash")
+    def test_approve_invoice_success(self, mock_flash, mock_render_template):
+        invoice_id = uuid4()
+        mock_invoice = Invoice(
+            id=invoice_id,
+            invoice_number="INV-001",
+            payee_name="John Doe",
+            due_date="2023-10-01",
+            total_amount=100.0,
+            status="created",
+        )
+
+        self._mock_invoice_repository.find_by_id.return_value = mock_invoice
+        mock_render_template.return_value = "mock_rendered_template"
+
+        data = {
+            "invoice_number": "INV-001",
+            "payee_name": "John Doe",
+            "due_date": "2023-10-01",
+            "total_amount": "100.0",
+        }
+
+        response = self.client.post(f"/invoice/approve/{invoice_id}", data=data, content_type="multipart/form-data")
+
+        self._mock_invoice_repository.update.assert_called_once_with(
+            mock_invoice,
+            {
+                "invoice_number": "INV-001",
+                "payee_name": "John Doe",
+                "due_date": "2023-10-01",
+                "total_amount": "100.0",
+                "status": InvoiceStatus.VALIDATED,
+            },
+        )
+        mock_flash.assert_called_once_with("Invoice approved successfully")
+        mock_render_template.assert_called_once_with("home.html", invoices=ANY)
+        self.assertEqual(response.data, b"mock_rendered_template")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("invoicelytics.blueprints.invoice.render_template")
+    @patch("invoicelytics.blueprints.invoice.flash")
+    def test_approve_invoice_not_found(self, mock_flash, mock_render_template):
+        invoice_id = uuid4()
+
+        mock_render_template.return_value = "mock_rendered_template"
+        self._mock_invoice_repository.find_by_id.return_value = None
+
+        response = self.client.post(f"/invoice/approve/{invoice_id}")
+
+        self._mock_invoice_repository.update.assert_not_called()
+        mock_flash.assert_called_once_with("Invoice not found", "error")
+        mock_render_template.assert_called_once_with("home.html", invoices=ANY)
+        self.assertEqual(response.data, b"mock_rendered_template")
+        self.assertEqual(response.status_code, 200)
