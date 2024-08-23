@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>Invoice Details</h1>
+            <form>
+                <div class="form-group">
+                    <label for="invoiceNumber">Invoice Number</label>
+                    <input type="text" class="form-control" id="invoiceNumber" value="{{ invoice.invoice_number }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="payeeName">Payee Name</label>
+                    <input type="text" class="form-control" id="payeeName" value="{{ invoice.payee_name }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="dueDate">Due Date</label>
+                    <input type="text" class="form-control" id="dueDate" value="{{ invoice.due_date }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="totalAmount">Total Amount</label>
+                    <input type="text" class="form-control" id="totalAmount" value="{{ invoice.total_amount }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <input type="text" class="form-control" id="status" value="{{ invoice.status }}" readonly>
+                </div>
+                <a href="{{ url_for('home_bp.home') }}" class="btn btn-secondary">Back to Home</a>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <iframe src="{{ url_for('invoice_bp.serve_invoice_pdf', invoice_id=invoice.id) }}" width="100%" height="600px"></iframe>
+        </div>
+    </div>
+</div>
+{% endblock %}

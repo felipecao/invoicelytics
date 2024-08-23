@@ -1,7 +1,7 @@
 from io import BytesIO
 from unittest import TestCase
 from unittest.mock import patch, MagicMock, ANY
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from invoicelytics.entities.domain_entities import Invoice
 from invoicelytics.repository.invoice_repository import InvoiceRepository
@@ -80,3 +80,57 @@ class TestInvoiceBlueprint(TestCase):
         mock_render_template.assert_called_once_with("home.html", invoices=mock_invoices)
         self.assertEqual(response.data, b"mock_rendered_template")
         self.assertEqual(response.status_code, 200)
+
+    @patch("invoicelytics.blueprints.invoice.render_template")
+    def test_view_invoice(self, mock_render_template):
+        invoice_id = uuid4()
+        mock_invoice = Invoice(
+            id=invoice_id,
+            invoice_number="INV-001",
+            payee_name="John Doe",
+            due_date="2023-10-01",
+            total_amount=100.0,
+            status="processed",
+            pdf_file_path="/path/to/invoice.pdf",
+        )
+        self._mock_invoice_repository.find_by_id.return_value = mock_invoice
+        mock_render_template.return_value = "mock_rendered_template"
+
+        response = self.client.get(f"/invoice/{invoice_id}")
+
+        self._mock_invoice_repository.find_by_id.assert_called_once_with(invoice_id, UUID("123e4567-e89b-12d3-a456-426614174000"))
+        mock_render_template.assert_called_once_with("invoice_detail.html", invoice=mock_invoice)
+        self.assertEqual(response.data, b"mock_rendered_template")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("invoicelytics.blueprints.invoice.send_file")
+    def test_serve_invoice_pdf(self, mock_send_file):
+        invoice_id = uuid4()
+        mock_invoice = Invoice(
+            id=invoice_id,
+            invoice_number="INV-001",
+            payee_name="John Doe",
+            due_date="2023-10-01",
+            total_amount=100.0,
+            status="processed",
+            pdf_file_path="/path/to/invoice.pdf",
+        )
+        self._mock_invoice_repository.find_by_id.return_value = mock_invoice
+        mock_send_file.return_value = "mock_pdf_file"
+
+        response = self.client.get(f"/invoice/pdf/{invoice_id}")
+
+        self._mock_invoice_repository.find_by_id.assert_called_once_with(invoice_id, UUID("123e4567-e89b-12d3-a456-426614174000"))
+        mock_send_file.assert_called_once_with("/path/to/invoice.pdf")
+        self.assertEqual(response.data, b"mock_pdf_file")
+        self.assertEqual(response.status_code, 200)
+
+    def test_serve_invoice_pdf_not_found(self):
+        invoice_id = uuid4()
+        self._mock_invoice_repository.find_by_id.return_value = None
+
+        response = self.client.get(f"/invoice/pdf/{invoice_id}")
+
+        self._mock_invoice_repository.find_by_id.assert_called_once_with(invoice_id, UUID("123e4567-e89b-12d3-a456-426614174000"))
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, b"File not found")

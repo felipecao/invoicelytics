@@ -2,12 +2,12 @@ import logging
 from typing import Optional
 from uuid import UUID, uuid4
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, send_file
 
 from invoicelytics.entities.domain_entities import InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
-from invoicelytics.support.os_utils import UploadFolder
 from invoicelytics.services.invoice_creation_service import InvoiceCreationService
+from invoicelytics.support.os_utils import UploadFolder
 
 
 class InvoiceBlueprint:
@@ -49,3 +49,16 @@ class InvoiceBlueprint:
         def list_processed_invoices():
             invoices = self._invoice_repository.find_by_status(InvoiceStatus.PROCESSED, self._TENANT_ID)
             return render_template("home.html", invoices=invoices)
+
+        @self.blueprint.route("/invoice/<uuid:invoice_id>", methods=["GET"])
+        def view_invoice(invoice_id):
+            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+            return render_template("invoice_detail.html", invoice=invoice)
+
+        @self.blueprint.route("/invoice/pdf/<uuid:invoice_id>", methods=["GET"])
+        def serve_invoice_pdf(invoice_id):
+            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+            if invoice and invoice.pdf_file_path:
+                return send_file(invoice.pdf_file_path)
+            else:
+                return "File not found", 404
