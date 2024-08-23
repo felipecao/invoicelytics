@@ -2,7 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import select, update
 
-from invoicelytics.entities.domain_entities import Invoice
+from invoicelytics.entities.domain_entities import Invoice, InvoiceStatus
 from invoicelytics.run import db
 from invoicelytics.support.helpers import get_value
 
@@ -44,3 +44,7 @@ class InvoiceRepository:
     @staticmethod
     def find_by_id(invoice_id: UUID, tenant_id: UUID) -> Invoice:
         return db.session.scalar(select(Invoice).where(Invoice.id == invoice_id).where(Invoice.tenant_id == tenant_id))
+
+    @staticmethod
+    def find_by_status(status: InvoiceStatus, tenant_id: UUID) -> list[Invoice]:
+        return db.session.scalars(select(Invoice).where(Invoice.status == status).where(Invoice.tenant_id == tenant_id)).all()

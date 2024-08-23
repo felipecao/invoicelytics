@@ -2,6 +2,9 @@ from io import BytesIO
 from unittest import TestCase
 from unittest.mock import patch, MagicMock, ANY
 from uuid import UUID
+
+from invoicelytics.entities.domain_entities import Invoice
+from invoicelytics.repository.invoice_repository import InvoiceRepository
 from tests import test_faker
 
 from flask import Flask
@@ -15,10 +18,12 @@ class TestInvoiceBlueprint(TestCase):
     def setUp(self):
         self._mock_invoice_creation_service = MagicMock(spec=InvoiceCreationService)
         self._mock_upload_folder = MagicMock(spec=UploadFolder)
+        self._mock_invoice_repository = MagicMock(spec=InvoiceRepository)
         self.app = Flask(__name__)
         self.invoice_blueprint = InvoiceBlueprint(
             invoice_creation_service=self._mock_invoice_creation_service,
             upload_folder=self._mock_upload_folder,
+            invoice_repository=self._mock_invoice_repository,
         )
         self.app.register_blueprint(self.invoice_blueprint.blueprint)
         self.client = self.app.test_client()
@@ -50,3 +55,28 @@ class TestInvoiceBlueprint(TestCase):
 
         mock_render_template.assert_called_once_with("upload.html")
         self.assertEqual(response.data, b"mock_rendered_template")
+
+    @patch("invoicelytics.blueprints.invoice.render_template")
+    def test_list_processed_invoices(self, mock_render_template):
+        mock_render_template.return_value = "mock_rendered_template"
+        mock_invoices = [
+            Invoice(
+                invoice_number="INV-001",
+                payee_name="John Doe",
+                due_date="2023-10-01",
+                total_amount=100.0,
+            ),
+            Invoice(
+                invoice_number="INV-002",
+                payee_name="Jane Smith",
+                due_date="2023-10-02",
+                total_amount=200.0,
+            ),
+        ]
+        self._mock_invoice_repository.find_by_status.return_value = mock_invoices
+
+        response = self.client.get("/invoices")
+
+        mock_render_template.assert_called_once_with("home.html", invoices=mock_invoices)
+        self.assertEqual(response.data, b"mock_rendered_template")
+        self.assertEqual(response.status_code, 200)

@@ -4,18 +4,27 @@ from uuid import UUID, uuid4
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
+from invoicelytics.entities.domain_entities import InvoiceStatus
+from invoicelytics.repository.invoice_repository import InvoiceRepository
 from invoicelytics.support.os_utils import UploadFolder
 from invoicelytics.services.invoice_creation_service import InvoiceCreationService
 
 
 class InvoiceBlueprint:
-    def __init__(self, invoice_creation_service: Optional[InvoiceCreationService] = None, upload_folder: Optional[UploadFolder] = None):
+    def __init__(
+        self,
+        invoice_creation_service: Optional[InvoiceCreationService] = None,
+        upload_folder: Optional[UploadFolder] = None,
+        invoice_repository: Optional[InvoiceRepository] = None,
+    ):
         # TODO remove this fixed tenant id. This should be fetched from the accounts table based on the logged user.
         self._TENANT_ID = UUID("123e4567-e89b-12d3-a456-426614174000")
         # end TODO
         self._logger = logging.getLogger(__name__)
         self._invoice_creation_service = invoice_creation_service or InvoiceCreationService()
+        self._invoice_creation_service = invoice_creation_service or InvoiceCreationService()
         self._upload_folder = upload_folder or UploadFolder()
+        self._invoice_repository = invoice_repository or InvoiceRepository()
         self.blueprint = Blueprint("invoice_bp", __name__)
         self._add_routes()
 
@@ -35,3 +44,8 @@ class InvoiceBlueprint:
         @self.blueprint.route("/upload", methods=["GET"])
         def load_upload_page():
             return render_template("upload.html")
+
+        @self.blueprint.route("/invoices", methods=["GET"])
+        def list_processed_invoices():
+            invoices = self._invoice_repository.find_by_status(InvoiceStatus.PROCESSED, self._TENANT_ID)
+            return render_template("home.html", invoices=invoices)

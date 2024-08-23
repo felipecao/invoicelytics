@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, url_for
 
 
 class HomeBlueprint:
@@ -12,4 +12,4 @@ class HomeBlueprint:
     def add_routes(self):
         @self.blueprint.route("/", methods=["GET"])
         def home():
-            return render_template("home.html")
+            return redirect(url_for("invoice_bp.list_processed_invoices"))

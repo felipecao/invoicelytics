@@ -1,17 +1,20 @@
 import os
 import tempfile
-import unittest
+from unittest import TestCase
 
 from flask import Flask
 
 from invoicelytics.blueprints.home import HomeBlueprint
+from invoicelytics.blueprints.invoice import InvoiceBlueprint
 
 
-class TestHomeBlueprint(unittest.TestCase):
+class TestHomeBlueprint(TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.home_blueprint = HomeBlueprint()
+        self.invoice_blueprint = InvoiceBlueprint()
         self.app.register_blueprint(self.home_blueprint.blueprint)
+        self.app.register_blueprint(self.invoice_blueprint.blueprint)
 
         # Create a temporary directory for templates
         self.templates_dir = tempfile.TemporaryDirectory()
@@ -27,7 +30,7 @@ class TestHomeBlueprint(unittest.TestCase):
         # Clean up the temporary directory
         self.templates_dir.cleanup()
 
-    def test_home(self):
+    def test_home_redirect(self):
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Welcome", response.data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.location, "/invoices")

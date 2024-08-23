@@ -1,11 +1,11 @@
 from uuid import uuid4, UUID
-from tests import test_faker
 
 from sqlalchemy import exists
 
 from invoicelytics.entities.domain_entities import Invoice, InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
 from invoicelytics.run import db
+from tests import test_faker
 from tests.repository.base_repository_test import BaseRepositoryTest
 
 
@@ -73,6 +73,33 @@ class TestInvoiceRepository(BaseRepositoryTest):
 
         self.assertIsNotNone(instance)
         self.assertEqual(status, instance.status)
+
+    def test_find_by_status(self):
+        invoice_id = uuid4()
+        tenant_id = uuid4()
+
+        self._save_entity(
+            Invoice(
+                id=invoice_id,
+                tenant_id=tenant_id,
+                status=InvoiceStatus.CREATED,
+                pdf_file_path=test_faker.file_path(extension="pdf"),
+            )
+        )
+
+        self._save_entity(
+            Invoice(
+                id=uuid4(),
+                tenant_id=tenant_id,
+                status=InvoiceStatus.PROCESSED,
+                pdf_file_path=test_faker.file_path(extension="pdf"),
+            )
+        )
+
+        instances = self._repository.find_by_status(InvoiceStatus.CREATED, tenant_id)
+
+        self.assertEqual(1, len(instances))
+        self.assertEqual(invoice_id, instances[0].id)
 
     @staticmethod
     def _exists_invoice(invoice_id: UUID, tenant_id: UUID, status: InvoiceStatus) -> bool:
