@@ -82,3 +82,20 @@ class InvoiceBlueprint:
             else:
                 flash("Invoice not found", "error")
             return list_processed_invoices()
+
+        @self.blueprint.route("/invoice/reject/<uuid:invoice_id>", methods=["POST"])
+        def reject_invoice(invoice_id):
+            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+
+            if invoice:
+                self._invoice_repository.update(
+                    invoice,
+                    {
+                        "status": InvoiceStatus.REJECTED,
+                    },
+                )
+                flash("Invoice rejected successfully")
+            else:
+                flash("Invoice not found", "error")
+
+            return list_processed_invoices()

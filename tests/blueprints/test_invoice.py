@@ -190,3 +190,48 @@ class TestInvoiceBlueprint(TestCase):
         mock_render_template.assert_called_once_with("home.html", invoices=ANY)
         self.assertEqual(response.data, b"mock_rendered_template")
         self.assertEqual(response.status_code, 200)
+
+    @patch("invoicelytics.blueprints.invoice.render_template")
+    @patch("invoicelytics.blueprints.invoice.flash")
+    def test_reject_invoice_success(self, mock_flash, mock_render_template):
+        invoice_id = uuid4()
+        mock_invoice = Invoice(
+            id=invoice_id,
+            invoice_number="INV-001",
+            payee_name="John Doe",
+            due_date="2023-10-01",
+            total_amount=100.0,
+            status="created",
+        )
+
+        self._mock_invoice_repository.find_by_id.return_value = mock_invoice
+        mock_render_template.return_value = "mock_rendered_template"
+
+        response = self.client.post(f"/invoice/reject/{invoice_id}", data={}, content_type="multipart/form-data")
+
+        self._mock_invoice_repository.update.assert_called_once_with(
+            mock_invoice,
+            {
+                "status": InvoiceStatus.REJECTED,
+            },
+        )
+        mock_flash.assert_called_once_with("Invoice rejected successfully")
+        mock_render_template.assert_called_once_with("home.html", invoices=ANY)
+        self.assertEqual(response.data, b"mock_rendered_template")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("invoicelytics.blueprints.invoice.render_template")
+    @patch("invoicelytics.blueprints.invoice.flash")
+    def test_reject_invoice_not_found(self, mock_flash, mock_render_template):
+        invoice_id = uuid4()
+
+        mock_render_template.return_value = "mock_rendered_template"
+        self._mock_invoice_repository.find_by_id.return_value = None
+
+        response = self.client.post(f"/invoice/reject/{invoice_id}")
+
+        self._mock_invoice_repository.update.assert_not_called()
+        mock_flash.assert_called_once_with("Invoice not found", "error")
+        mock_render_template.assert_called_once_with("home.html", invoices=ANY)
+        self.assertEqual(response.data, b"mock_rendered_template")
+        self.assertEqual(response.status_code, 200)

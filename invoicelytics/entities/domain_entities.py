@@ -12,6 +12,7 @@ class InvoiceStatus(Enum):
     CREATED = "created"
     PROCESSED = "processed"
     VALIDATED = "validated"
+    REJECTED = "rejected"
 
 
 class Tenant(Base):
@@ -52,7 +53,7 @@ class Invoice(Base):
     total_amount = Column(Float, nullable=True)
     tax_amount = Column(Float, nullable=True)
     due_date = Column(Date, nullable=True)
-    status = Column(Enum("created", "processed", "validated", name="invoice_status_enum"), nullable=True)
+    status = Column(Enum("created", "processed", "validated", "rejected", name="invoice_status_enum"), nullable=True)
     uploaded_by = Column(UUID(as_uuid=True), nullable=True)
     validated_by = Column(UUID(as_uuid=True), nullable=True)
     pdf_file_path = Column(String, nullable=True)
