@@ -9,6 +9,10 @@ from invoicelytics.run import db
 class TenantRepository:
 
     @staticmethod
+    def find_all() -> list[Tenant]:
+        return db.session.scalars(select(Tenant)).all()
+
+    @staticmethod
     def find_by_id(tenant_id: UUID) -> Tenant:
         return db.session.scalar(select(Tenant).where(Tenant.id == tenant_id))
 

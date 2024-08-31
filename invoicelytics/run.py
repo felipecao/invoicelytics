@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 from pathlib import Path
 
 from flask import Flask
@@ -33,6 +34,23 @@ def create_app():
     _create_folder_if_not_exists(os.environ["UPLOAD_FOLDER"])
 
     db.init_app(flask_app)
+
+    def initialize_chat_assistants():
+        with flask_app.app_context():
+            logging.info("Started initializing chat assistants")
+
+            from invoicelytics.assistants.chat_assistant import ChatAssistant
+            from invoicelytics.repository.tenant_repository import TenantRepository
+
+            tenant_repository = TenantRepository()
+            chat_assistant = ChatAssistant()
+
+            for tenant in tenant_repository.find_all():
+                chat_assistant.create_if_not_exists(tenant.id)
+
+            logging.info("Finished initializing chat assistants")
+
+    threading.Thread(target=initialize_chat_assistants).start()
 
     return flask_app
 

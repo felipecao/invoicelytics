@@ -50,6 +50,22 @@ class TestTenantRepository(BaseRepositoryTest):
         self.assertIsNotNone(instance)
         self.assertEqual(name, instance.tenant_name)
 
+    def test_find_all(self):
+        tenant_id = uuid4()
+        name = test_faker.company()
+
+        self._save_entity(
+            Tenant(
+                id=tenant_id,
+                tenant_name=name,
+            )
+        )
+
+        instances = self._repository.find_all()
+
+        self.assertEqual(1, len(instances))
+        self.assertEqual(name, instances[0].tenant_name)
+
     @staticmethod
     def _exists(tenant_id: UUID, vector_store_id: str) -> bool:
         return db.session.scalar(exists().where(Tenant.id == tenant_id).where(Tenant.open_ai_vector_store_id == vector_store_id).select())
