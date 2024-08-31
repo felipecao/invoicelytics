@@ -23,20 +23,21 @@ class InvoiceRepository:
             db.session.close()
 
     @staticmethod
-    def update(instance: Invoice, extracted_data_points: dict):
+    def update(instance: Invoice, attributes_to_update: dict):
         db.session.execute(
             update(Invoice)
             .where(Invoice.id == instance.id)
             .where(Invoice.tenant_id == instance.tenant_id)
             .values(
-                payee_name=get_value(extracted_data_points, instance, "payee_name"),
-                payee_address=get_value(extracted_data_points, instance, "payee_address"),
-                invoice_number=get_value(extracted_data_points, instance, "invoice_number"),
-                issue_date=get_value(extracted_data_points, instance, "issue_date"),
-                total_amount=get_value(extracted_data_points, instance, "total_amount"),
-                tax_amount=get_value(extracted_data_points, instance, "tax_amount"),
-                due_date=get_value(extracted_data_points, instance, "due_date"),
-                status=get_value(extracted_data_points, instance, "status"),
+                payee_name=get_value(attributes_to_update, instance, "payee_name"),
+                payee_address=get_value(attributes_to_update, instance, "payee_address"),
+                invoice_number=get_value(attributes_to_update, instance, "invoice_number"),
+                issue_date=get_value(attributes_to_update, instance, "issue_date"),
+                total_amount=get_value(attributes_to_update, instance, "total_amount"),
+                tax_amount=get_value(attributes_to_update, instance, "tax_amount"),
+                due_date=get_value(attributes_to_update, instance, "due_date"),
+                status=get_value(attributes_to_update, instance, "status"),
+                open_ai_json_file_id=get_value(attributes_to_update, instance, "open_ai_json_file_id"),
             )
         )
         db.session.commit()

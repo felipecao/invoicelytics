@@ -11,7 +11,7 @@ Base = declarative_base()
 class InvoiceStatus(Enum):
     CREATED = "created"
     PROCESSED = "processed"
-    VALIDATED = "validated"
+    APPROVED = "approved"
     REJECTED = "rejected"
 
 
@@ -22,6 +22,7 @@ class Tenant(Base):
     tenant_name = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime, nullable=False, default=dt.datetime.now(ZoneInfo("UTC")))
     updated_at = Column(DateTime, nullable=False, default=dt.datetime.now(ZoneInfo("UTC")))
+    open_ai_vector_store_id = Column(String, nullable=True)
 
 
 class User(Base):
@@ -53,10 +54,30 @@ class Invoice(Base):
     total_amount = Column(Float, nullable=True)
     tax_amount = Column(Float, nullable=True)
     due_date = Column(Date, nullable=True)
-    status = Column(Enum("created", "processed", "validated", "rejected", name="invoice_status_enum"), nullable=True)
+    status = Column(Enum("created", "processed", "approved", "rejected", name="invoice_status_enum"), nullable=True)
     uploaded_by = Column(UUID(as_uuid=True), nullable=True)
     validated_by = Column(UUID(as_uuid=True), nullable=True)
     pdf_file_path = Column(String, nullable=True)
     created_at = Column(DateTime, default=dt.datetime.now(ZoneInfo("UTC")), nullable=True)
     updated_at = Column(DateTime, default=dt.datetime.now(ZoneInfo("UTC")), nullable=True)
-    open_ai_file_id = Column(String, nullable=True)
+    open_ai_pdf_file_id = Column(String, nullable=True)
+    open_ai_json_file_id = Column(String, nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "tenant_id": str(self.tenant_id) if self.tenant_id else None,
+            "payee_name": self.payee_name,
+            "payee_address": self.payee_address,
+            "invoice_number": self.invoice_number,
+            "issue_date": self.issue_date.isoformat() if self.issue_date else None,
+            "total_amount": self.total_amount,
+            "tax_amount": self.tax_amount,
+            "due_date": self.due_date.isoformat() if self.due_date else None,
+            "status": self.status,
+            "uploaded_by": str(self.uploaded_by) if self.uploaded_by else None,
+            "validated_by": str(self.validated_by) if self.validated_by else None,
+            "pdf_file_path": self.pdf_file_path,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

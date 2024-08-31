@@ -6,6 +6,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for,
 
 from invoicelytics.entities.domain_entities import InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
+from invoicelytics.services.invoice_approval_service import InvoiceApprovalService
 from invoicelytics.services.invoice_creation_service import InvoiceCreationService
 from invoicelytics.support.os_utils import UploadFolder
 
@@ -14,6 +15,7 @@ class InvoiceBlueprint:
     def __init__(
         self,
         invoice_creation_service: Optional[InvoiceCreationService] = None,
+        invoice_approval_service: Optional[InvoiceApprovalService] = None,
         upload_folder: Optional[UploadFolder] = None,
         invoice_repository: Optional[InvoiceRepository] = None,
     ):
@@ -22,7 +24,7 @@ class InvoiceBlueprint:
         # end TODO
         self._logger = logging.getLogger(__name__)
         self._invoice_creation_service = invoice_creation_service or InvoiceCreationService()
-        self._invoice_creation_service = invoice_creation_service or InvoiceCreationService()
+        self._invoice_approval_service = invoice_approval_service or InvoiceApprovalService()
         self._upload_folder = upload_folder or UploadFolder()
         self._invoice_repository = invoice_repository or InvoiceRepository()
         self.blueprint = Blueprint("invoice_bp", __name__)
@@ -38,7 +40,7 @@ class InvoiceBlueprint:
                 self._invoice_creation_service.create_invoice(uuid4(), file_path, self._TENANT_ID)
                 self._logger.info(f"File successfully uploaded: {file_path}")
 
-            flash("Your upload was successful")
+            flash("Your upload was successful. Please wait a few seconds while we process your invoice...")
             return redirect(url_for("invoice_bp.load_upload_page"))
 
         @self.blueprint.route("/upload", methods=["GET"])
@@ -68,14 +70,14 @@ class InvoiceBlueprint:
             invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
 
             if invoice:
-                self._invoice_repository.update(
-                    invoice,
+                self._invoice_approval_service.execute(
+                    invoice_id,
+                    self._TENANT_ID,
                     {
                         "invoice_number": request.form.get("invoice_number"),
                         "payee_name": request.form.get("payee_name"),
                         "due_date": request.form.get("due_date"),
                         "total_amount": request.form.get("total_amount"),
-                        "status": InvoiceStatus.VALIDATED,
                     },
                 )
                 flash("Invoice approved successfully")

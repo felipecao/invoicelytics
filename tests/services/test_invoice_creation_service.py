@@ -43,5 +43,5 @@ class TestInvoiceCreationService(TestCase):
         self.assertEqual(invoice_id, args[0].id)
         self.assertEqual(tenant_id, args[0].tenant_id)
         self.assertEqual(InvoiceStatus.CREATED, args[0].status)
-        self.assertEqual(open_ai_file_id, args[0].open_ai_file_id)
+        self.assertEqual(open_ai_file_id, args[0].open_ai_pdf_file_id)
         self.assertEqual(f"/tmp/test/tenants/{tenant_id}/invoices/{invoice_id}.pdf", args[0].pdf_file_path)

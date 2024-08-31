@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 from invoicelytics.entities.domain_entities import Invoice, InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
+from invoicelytics.services.invoice_approval_service import InvoiceApprovalService
 from tests import test_faker
 
 from flask import Flask
@@ -17,11 +18,13 @@ from invoicelytics.services.invoice_creation_service import InvoiceCreationServi
 class TestInvoiceBlueprint(TestCase):
     def setUp(self):
         self._mock_invoice_creation_service = MagicMock(spec=InvoiceCreationService)
+        self._mock_invoice_approval_service = MagicMock(spec=InvoiceApprovalService)
         self._mock_upload_folder = MagicMock(spec=UploadFolder)
         self._mock_invoice_repository = MagicMock(spec=InvoiceRepository)
         self.app = Flask(__name__)
         self.invoice_blueprint = InvoiceBlueprint(
             invoice_creation_service=self._mock_invoice_creation_service,
+            invoice_approval_service=self._mock_invoice_approval_service,
             upload_folder=self._mock_upload_folder,
             invoice_repository=self._mock_invoice_repository,
         )
@@ -160,14 +163,14 @@ class TestInvoiceBlueprint(TestCase):
 
         response = self.client.post(f"/invoice/approve/{invoice_id}", data=data, content_type="multipart/form-data")
 
-        self._mock_invoice_repository.update.assert_called_once_with(
-            mock_invoice,
+        self._mock_invoice_approval_service.execute.assert_called_once_with(
+            invoice_id,
+            UUID("123e4567-e89b-12d3-a456-426614174000"),
             {
                 "invoice_number": "INV-001",
                 "payee_name": "John Doe",
                 "due_date": "2023-10-01",
                 "total_amount": "100.0",
-                "status": InvoiceStatus.VALIDATED,
             },
         )
         mock_flash.assert_called_once_with("Invoice approved successfully")

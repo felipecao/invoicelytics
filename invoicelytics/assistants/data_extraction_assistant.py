@@ -42,7 +42,7 @@ class DataExtractionAssistant:
         prompt = f"""
                 # instructions
                 You need to extract data points from an invoice in JSON format.
-                The invoice has been uploaded and its file ID is: {invoice.open_ai_file_id}
+                The invoice has been uploaded and its file ID is: {invoice.open_ai_pdf_file_id}
 
                 It is very important that you do not generate any imaginary values.
                 Only extract information that is clearly visible and verifiable from the invoice.
@@ -58,7 +58,7 @@ class DataExtractionAssistant:
                 """
 
         thread_id = self._create_thread()
-        attachments = [{"file_id": invoice.open_ai_file_id, "tools": [{"type": "file_search"}]}]
+        attachments = [{"file_id": invoice.open_ai_pdf_file_id, "tools": [{"type": "file_search"}]}]
         answer = self._ask_gpt(prompt=prompt, invoice=invoice, thread_id=thread_id, attachments=attachments)
 
         return answer

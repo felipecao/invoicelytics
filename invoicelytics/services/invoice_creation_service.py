@@ -36,7 +36,7 @@ class InvoiceCreationService:
                 tenant_id=tenant_id,
                 status=InvoiceStatus.CREATED,
                 pdf_file_path=new_file_path,
-                open_ai_file_id=file_id,
+                open_ai_pdf_file_id=file_id,
             )
         )
 
