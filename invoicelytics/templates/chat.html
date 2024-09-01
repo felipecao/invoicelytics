@@ -14,11 +14,16 @@
             <button class="btn btn-primary" id="send-button">Send</button>
         </div>
     </div>
+    <div id="spinner" class="spinner-border text-primary mt-3" role="status" style="display: none;">
+        <span class="sr-only">Loading...</span>
+    </div>
 </div>
 <script>
-    document.getElementById('send-button').addEventListener('click', function() {
+    function sendMessage() {
         const userMessage = document.getElementById('user-message').value;
         if (userMessage) {
+            document.getElementById('spinner').style.display = 'block';
+            document.getElementById('user-message').disabled = true;
             fetch('/chat', {
                 method: 'POST',
                 headers: {
@@ -45,7 +50,18 @@
 
                 document.getElementById('user-message').value = '';
                 chatBox.scrollTop = chatBox.scrollHeight;
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('user-message').disabled = false;
             });
+        }
+    }
+
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+
+    document.getElementById('user-message').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
         }
     });
 </script>
