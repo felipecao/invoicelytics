@@ -18,11 +18,13 @@ def create_app():
 
     logging.basicConfig(level=logging.INFO)
 
+    from invoicelytics.blueprints.bootstrap import BootstrapBlueprint
     from invoicelytics.blueprints.chat import ChatBlueprint
     from invoicelytics.blueprints.health import HealthBlueprint
     from invoicelytics.blueprints.home import HomeBlueprint
     from invoicelytics.blueprints.invoice import InvoiceBlueprint
 
+    flask_app.register_blueprint(BootstrapBlueprint().blueprint)
     flask_app.register_blueprint(ChatBlueprint().blueprint)
     flask_app.register_blueprint(HealthBlueprint().blueprint)
     flask_app.register_blueprint(HomeBlueprint().blueprint)

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with Emma{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Chat with Emma</h1>
+    <div id="chat-box" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+        <!-- Chat messages will be appended here -->
+    </div>
+    <div class="input-group mt-3">
+        <input type="text" id="user-message" class="form-control" placeholder="Type your message...">
+        <div class="input-group-append">
+            <button class="btn btn-primary" id="send-button">Send</button>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('send-button').addEventListener('click', function() {
+        const userMessage = document.getElementById('user-message').value;
+        if (userMessage) {
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const chatBox = document.getElementById('chat-box');
+                const userMessageElement = document.createElement('div');
+                userMessageElement.textContent = 'You: ' + userMessage;
+                chatBox.appendChild(userMessageElement);
+
+                const breakElement = document.createElement('br');
+                chatBox.appendChild(breakElement);
+
+                const assistantMessageElement = document.createElement('div');
+                assistantMessageElement.textContent = 'Emma: ' + data.response;
+                chatBox.appendChild(assistantMessageElement);
+
+                const breakElement2 = document.createElement('br');
+                chatBox.appendChild(breakElement2);
+
+                document.getElementById('user-message').value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+    });
+</script>
+{% endblock %}

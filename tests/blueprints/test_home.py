@@ -1,6 +1,5 @@
-import os
-import tempfile
 from unittest import TestCase
+from unittest.mock import patch
 
 from flask import Flask
 
@@ -16,21 +15,13 @@ class TestHomeBlueprint(TestCase):
         self.app.register_blueprint(self.home_blueprint.blueprint)
         self.app.register_blueprint(self.invoice_blueprint.blueprint)
 
-        # Create a temporary directory for templates
-        self.templates_dir = tempfile.TemporaryDirectory()
-        self.app.template_folder = self.templates_dir.name
-
-        # Create a mock home.html template
-        with open(os.path.join(self.templates_dir.name, "home.html"), "w") as f:
-            f.write('<h1 class="text-center">Welcome</h1>')
-
         self.client = self.app.test_client()
 
-    def tearDown(self):
-        # Clean up the temporary directory
-        self.templates_dir.cleanup()
+    @patch("invoicelytics.blueprints.home.render_template")
+    def test_home_render(self, mock_render_template):
+        mock_render_template.return_value = "mock_rendered_template"
 
-    def test_home_redirect(self):
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.location, "/invoices")
+
+        mock_render_template.assert_called_once_with("home.html")
+        self.assertEqual(response.data, b"mock_rendered_template")

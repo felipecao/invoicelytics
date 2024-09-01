@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from flask import Blueprint, request
+from flask import Blueprint, request, render_template
 
 from invoicelytics.assistants.chat_assistant import ChatAssistant
 
@@ -22,6 +22,10 @@ class ChatBlueprint:
         self.add_routes()
 
     def add_routes(self):
+        @self.blueprint.route("/chat", methods=["GET"])
+        def load_page():
+            return render_template("chat.html")
+
         @self.blueprint.route("/chat", methods=["POST"])
         def post_message_and_get_response():
             user_message = request.json.get("message")
