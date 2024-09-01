@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 from invoicelytics.entities.domain_entities import Invoice, InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
+from invoicelytics.repository.tenant_repository import TenantRepository
 from invoicelytics.services.invoice_approval_service import InvoiceApprovalService
 from tests import test_faker
 
@@ -21,15 +22,21 @@ class TestInvoiceBlueprint(TestCase):
         self._mock_invoice_approval_service = MagicMock(spec=InvoiceApprovalService)
         self._mock_upload_folder = MagicMock(spec=UploadFolder)
         self._mock_invoice_repository = MagicMock(spec=InvoiceRepository)
+        self.mock_tenant_repository = MagicMock(spec=TenantRepository)
         self.app = Flask(__name__)
         self.invoice_blueprint = InvoiceBlueprint(
             invoice_creation_service=self._mock_invoice_creation_service,
             invoice_approval_service=self._mock_invoice_approval_service,
             upload_folder=self._mock_upload_folder,
             invoice_repository=self._mock_invoice_repository,
+            tenant_repository=self.mock_tenant_repository,
         )
         self.app.register_blueprint(self.invoice_blueprint.blueprint)
         self.client = self.app.test_client()
+
+        self.mock_tenant_repository.find_by_id.return_value = MagicMock(
+            open_ai_vector_store_id=test_faker.ssn(), open_ai_chat_assistant_id=test_faker.ssn()
+        )
 
     @patch("invoicelytics.blueprints.invoice.flash")
     def test_post_uploaded_file(self, mock_flash):

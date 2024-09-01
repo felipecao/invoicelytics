@@ -24,7 +24,7 @@ class TestVectorStoreClient(TestCase):
 
         result = client.create()
 
-        self.assertEqual(vector_store_id, result)
+        self.assertEqual(vector_store_id, result.id)
 
     def test_upload_files_by_ids(self):
         mock_client = fake_object({"beta": fake_object({"vector_stores": MockVectorStores()})})

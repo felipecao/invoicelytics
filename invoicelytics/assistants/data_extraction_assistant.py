@@ -2,8 +2,8 @@ import json
 import logging
 from json import JSONDecodeError
 from typing import Optional
+from uuid import UUID
 
-from invoicelytics.assistants.assistant_builder import AssistantBuilder
 from invoicelytics.data_structures.invoice_data_point import InvoiceDataPoint
 from invoicelytics.entities.domain_entities import Invoice
 from invoicelytics.integrations.open_ai.message_client import MessageClient
@@ -11,24 +11,25 @@ from invoicelytics.integrations.open_ai.run_client import RunClient
 from invoicelytics.integrations.open_ai.thread_client import ThreadClient
 from invoicelytics.repository.invoice_data_point_repository import InvoiceDataPointRepository
 from invoicelytics.repository.invoice_repository import InvoiceRepository
+from invoicelytics.repository.tenant_repository import TenantRepository
 
 
 class DataExtractionAssistant:
     def __init__(
         self,
-        assistant_builder: Optional[AssistantBuilder] = None,
         thread_client: Optional[ThreadClient] = None,
         message_client: Optional[MessageClient] = None,
         run_client: Optional[RunClient] = None,
         invoice_repository: Optional[InvoiceRepository] = None,
         invoice_data_point_repository: Optional[InvoiceDataPointRepository] = None,
+        tenant_repository: Optional[TenantRepository] = None,
     ):
-        self._assistant_builder = assistant_builder or AssistantBuilder()
         self._thread_client = thread_client or ThreadClient()
         self._message_client = message_client or MessageClient()
         self._run_client = run_client or RunClient()
         self._invoice_repository = invoice_repository or InvoiceRepository()
         self._invoice_data_point_repository = invoice_data_point_repository or InvoiceDataPointRepository()
+        self._tenant_repository = tenant_repository or TenantRepository()
         self._logger = logging.getLogger(__name__)
 
         self._NAME = "ethan_data_extraction_assistant_b4ce491f-ec4a-4324-aa11-f81288af2bad"
@@ -81,7 +82,7 @@ class DataExtractionAssistant:
 
         run = self._run_client.create_and_poll(
             thread_id=thread_id,
-            assistant_id=self._get_assistant_id(),
+            assistant_id=self._get_assistant_id(invoice.tenant_id),
         )
 
         if run.status != "completed":
@@ -103,26 +104,8 @@ class DataExtractionAssistant:
         except JSONDecodeError:
             return {}
 
-    def _get_assistant_id(self):
-        return self._assistant_builder.create_assistant_if_does_not_exist(
-            name=self._NAME,
-            description="Ethan is an accounting assistant working on the extraction of core information from invoices",
-            tools=[{"type": "file_search"}],
-            instructions="""
-                        You are Ethan, an accounting assistant working on automatically extracting core information from invoices.
-
-                        To help with this extraction, here are some core information that are typically contained in an invoice:
-                           - An invoice number
-                           - Date of issue
-                           - Billing and shipping addresses
-                           - An itemized list of products or services with prices
-                           - Total amount due
-                           - Payment terms
-                           - Invoices often contain keywords and phrases such as "Invoice", "Bill To", "Amount Due", and "Payment Terms".
-
-                        They may also include company logos and tables with itemized lists.
-                    """,
-        )
+    def _get_assistant_id(self, tenant_id: UUID):
+        return self._tenant_repository.find_by_id(tenant_id).open_ai_chat_assistant_id
 
     @staticmethod
     def _sanitize_text(json_text: str) -> str:

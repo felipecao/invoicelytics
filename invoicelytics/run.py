@@ -1,6 +1,5 @@
 import logging
 import os
-import threading
 from pathlib import Path
 
 from flask import Flask
@@ -36,14 +35,6 @@ def create_app():
     _create_folder_if_not_exists(os.environ["UPLOAD_FOLDER"])
 
     db.init_app(flask_app)
-
-    def initialize_open_ai_assets():
-        from invoicelytics.services.openai_bootstrap_service import OpenAiBootstrapService
-
-        openai_bootstrap_service = OpenAiBootstrapService()
-        openai_bootstrap_service.execute()
-
-    threading.Thread(target=initialize_open_ai_assets).start()
 
     return flask_app
 

@@ -2,7 +2,6 @@ import unittest
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from invoicelytics.assistants.assistant_builder import AssistantBuilder
 from invoicelytics.assistants.chat_assistant import ChatAssistant
 from invoicelytics.integrations.open_ai.message_client import MessageClient
 from invoicelytics.integrations.open_ai.run_client import RunClient
@@ -13,14 +12,12 @@ from tests import test_faker
 
 class TestChatAssistant(unittest.TestCase):
     def setUp(self):
-        self.assistant_builder_mock = MagicMock(spec=AssistantBuilder)
         self.thread_client_mock = MagicMock(spec=ThreadClient)
         self.message_client_mock = MagicMock(spec=MessageClient)
         self.run_client_mock = MagicMock(spec=RunClient)
         self.tenant_repository_mock = MagicMock(spec=TenantRepository)
 
         self.chat_assistant = ChatAssistant(
-            assistant_builder=self.assistant_builder_mock,
             thread_client=self.thread_client_mock,
             message_client=self.message_client_mock,
             run_client=self.run_client_mock,

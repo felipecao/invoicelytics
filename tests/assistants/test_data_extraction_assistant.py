@@ -2,7 +2,6 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from uuid import uuid4
 
-from invoicelytics.assistants.assistant_builder import AssistantBuilder
 from invoicelytics.assistants.data_extraction_assistant import DataExtractionAssistant
 from invoicelytics.data_structures.invoice_data_point import InvoiceDataPoint
 from invoicelytics.entities.domain_entities import Invoice
@@ -11,25 +10,26 @@ from invoicelytics.integrations.open_ai.run_client import RunClient
 from invoicelytics.integrations.open_ai.thread_client import ThreadClient
 from invoicelytics.repository.invoice_data_point_repository import InvoiceDataPointRepository
 from invoicelytics.repository.invoice_repository import InvoiceRepository
+from invoicelytics.repository.tenant_repository import TenantRepository
 from tests import test_faker
 from tests.randoms import fake_object
 
 
 class TestDataExtractionAssistant(TestCase):
     def setUp(self):
-        self.mock_assistant_builder = MagicMock(spec=AssistantBuilder)
         self.mock_thread_client = MagicMock(spec=ThreadClient)
         self.mock_message_client = MagicMock(spec=MessageClient)
         self.mock_run_client = MagicMock(spec=RunClient)
         self.mock_invoice_repository = MagicMock(spec=InvoiceRepository)
         self.mock_invoice_data_point_repository = MagicMock(spec=InvoiceDataPointRepository)
+        self.mock_tenant_repository = MagicMock(spec=TenantRepository)
         self.assistant = DataExtractionAssistant(
-            assistant_builder=self.mock_assistant_builder,
             thread_client=self.mock_thread_client,
             message_client=self.mock_message_client,
             run_client=self.mock_run_client,
             invoice_repository=self.mock_invoice_repository,
             invoice_data_point_repository=self.mock_invoice_data_point_repository,
+            tenant_repository=self.mock_tenant_repository,
         )
 
     def test_extract_attributes(self):
@@ -49,6 +49,7 @@ class TestDataExtractionAssistant(TestCase):
         self.mock_invoice_data_point_repository.get_all.return_value = [
             InvoiceDataPoint(name="payee_name", data_type="string", description="Payee name")
         ]
+        self.mock_tenant_repository.find_by_id.return_value = MagicMock(open_ai_chat_assistant_id="assistant_id")
         self.mock_thread_client.create_thread.return_value = thread_id
         self.mock_run_client.create_and_poll.return_value = mock_run
         self.mock_message_client.list.return_value = mock_messages
@@ -73,6 +74,7 @@ class TestDataExtractionAssistant(TestCase):
         self.mock_invoice_data_point_repository.get_all.return_value = [
             InvoiceDataPoint(name="payee_name", data_type="string", description="Payee name")
         ]
+        self.mock_tenant_repository.find_by_id.return_value = MagicMock(open_ai_chat_assistant_id="assistant_id")
         self.mock_thread_client.create_thread.return_value = thread_id
         self.mock_run_client.create_and_poll.return_value = mock_run
 
@@ -97,6 +99,7 @@ class TestDataExtractionAssistant(TestCase):
         self.mock_invoice_data_point_repository.get_all.return_value = [
             InvoiceDataPoint(name="payee_name", data_type="string", description="Payee name")
         ]
+        self.mock_tenant_repository.find_by_id.return_value = MagicMock(open_ai_chat_assistant_id="assistant_id")
         self.mock_thread_client.create_thread.return_value = thread_id
         self.mock_run_client.create_and_poll.return_value = mock_run
 

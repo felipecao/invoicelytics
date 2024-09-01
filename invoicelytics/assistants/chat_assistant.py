@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from invoicelytics.assistants.assistant_builder import AssistantBuilder
 from invoicelytics.integrations.open_ai.message_client import MessageClient
 from invoicelytics.integrations.open_ai.run_client import RunClient
 from invoicelytics.integrations.open_ai.thread_client import ThreadClient
@@ -15,32 +14,17 @@ class ChatAssistant:
 
     def __init__(
         self,
-        assistant_builder: Optional[AssistantBuilder] = None,
         thread_client: Optional[ThreadClient] = None,
         message_client: Optional[MessageClient] = None,
         run_client: Optional[RunClient] = None,
         tenant_repository: Optional[TenantRepository] = None,
     ):
-        self._assistant_builder = assistant_builder or AssistantBuilder()
         self._thread_client = thread_client or ThreadClient()
         self._message_client = message_client or MessageClient()
         self._run_client = run_client or RunClient()
         self._tenant_repository = tenant_repository or TenantRepository()
 
         self._logger = logging.getLogger(__name__)
-
-    def create_if_not_exists(self, tenant_id: UUID):
-        return self._assistant_builder.create_assistant_if_does_not_exist(
-            name=f"{self.NAME_PREFIX}_{tenant_id}",
-            description="Emma is an accounting assistant who provides information about invoices uploaded into the system",
-            tools=[{"type": "file_search"}],
-            instructions="""
-                You are Emma, an accounting assistant who provides information about invoices uploaded into the system.
-
-                Your role is to process the invoices uploaded into our storage and provide accurate and precise information about them.
-                Whenever you don't know how to answer a question, you simply say "I don't know". You don't create imaginary values.
-            """,
-        )
 
     def ask_question(self, question: str, tenant_id: UUID, thread_id: Optional[str]):
         tenant = self._tenant_repository.find_by_id(tenant_id)
