@@ -19,6 +19,8 @@
     </div>
 </div>
 <script>
+    let threadId = null;
+
     function sendMessage() {
         const userMessage = document.getElementById('user-message').value;
         if (userMessage) {
@@ -29,7 +31,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message: userMessage })
+                body: JSON.stringify({ message: userMessage, thread_id: threadId })
             })
             .then(response => response.json())
             .then(data => {
@@ -52,6 +54,10 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
                 document.getElementById('spinner').style.display = 'none';
                 document.getElementById('user-message').disabled = false;
+                document.getElementById('user-message').focus();
+
+                // Store the thread_id for future messages
+                threadId = data.thread_id;
             });
         }
     }
