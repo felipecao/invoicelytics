@@ -17,12 +17,13 @@ class TenantRepository:
         return db.session.scalar(select(Tenant).where(Tenant.id == tenant_id))
 
     @staticmethod
-    def update(instance: Tenant, open_ai_vector_store_id: str):
+    def update(instance: Tenant, open_ai_vector_store_id: str, open_ai_chat_assistant_id: str):
         db.session.execute(
             update(Tenant)
             .where(Tenant.id == instance.id)
             .values(
                 open_ai_vector_store_id=open_ai_vector_store_id,
+                open_ai_chat_assistant_id=open_ai_chat_assistant_id,
             )
         )
         db.session.commit()

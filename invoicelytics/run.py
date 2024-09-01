@@ -37,22 +37,13 @@ def create_app():
 
     db.init_app(flask_app)
 
-    def initialize_chat_assistants():
-        with flask_app.app_context():
-            logging.info("Started initializing chat assistants")
+    def initialize_open_ai_assets():
+        from invoicelytics.services.openai_bootstrap_service import OpenAiBootstrapService
 
-            from invoicelytics.assistants.chat_assistant import ChatAssistant
-            from invoicelytics.repository.tenant_repository import TenantRepository
+        openai_bootstrap_service = OpenAiBootstrapService()
+        openai_bootstrap_service.execute()
 
-            tenant_repository = TenantRepository()
-            chat_assistant = ChatAssistant()
-
-            for tenant in tenant_repository.find_all():
-                chat_assistant.create_if_not_exists(tenant.id)
-
-            logging.info("Finished initializing chat assistants")
-
-    threading.Thread(target=initialize_chat_assistants).start()
+    threading.Thread(target=initialize_open_ai_assets).start()
 
     return flask_app
 

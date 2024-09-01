@@ -30,12 +30,15 @@ class TestAssistantBuilder(TestCase):
         description = "Test Description"
         instructions = "Test Instructions"
         tools = [{"tool": "test_tool"}]
-        self.mock_assistant_client.find_by_name.return_value = None
+        tool_resources = {"tools_resources": "test_tools_resources"}
+
         mock_new_assistant = MagicMock()
         mock_new_assistant.id = "new_id"
+
+        self.mock_assistant_client.find_by_name.return_value = None
         self.mock_assistant_client.create.return_value = mock_new_assistant
 
-        assistant_id = self.builder.create_assistant_if_does_not_exist(name, description, instructions, tools)
+        assistant_id = self.builder.create_assistant_if_does_not_exist(name, description, instructions, tools, tool_resources)
 
         self.mock_assistant_client.find_by_name.assert_called_once_with(name)
         self.mock_assistant_client.create.assert_called_once_with(
@@ -43,5 +46,6 @@ class TestAssistantBuilder(TestCase):
             description=description,
             instructions=instructions,
             tools=tools,
+            tool_resources=tool_resources,
         )
         self.assertEqual(assistant_id, "new_id")

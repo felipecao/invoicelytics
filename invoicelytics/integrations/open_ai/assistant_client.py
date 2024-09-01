@@ -18,6 +18,7 @@ class AssistantClient:
         description: str = None,
         instructions: str = None,
         tools=None,
+        tool_resources=None,
         temperature: float = 0.01,
         top_p: float = 1.0,
     ) -> Assistant:
@@ -30,6 +31,7 @@ class AssistantClient:
             description=description,
             instructions=instructions,
             tools=tools,
+            tool_resources=tool_resources,
             temperature=temperature,
             top_p=top_p,
         )

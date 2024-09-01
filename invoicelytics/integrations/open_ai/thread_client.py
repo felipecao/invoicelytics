@@ -10,5 +10,8 @@ class ThreadClient:
         self._client = client or (OpenAI() if os.environ.get("OPENAI_API_KEY") else None)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def create_thread(self):
-        return self._client.beta.threads.create().id
+    def create_thread(self, tool_resources: Optional[dict] = None):
+        if not tool_resources:
+            return self._client.beta.threads.create().id
+
+        return self._client.beta.threads.create(tool_resources=tool_resources).id

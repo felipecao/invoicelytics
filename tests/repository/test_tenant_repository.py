@@ -22,6 +22,7 @@ class TestTenantRepository(BaseRepositoryTest):
         tenant_id = uuid4()
         name = test_faker.company()
         vector_store_id = str(uuid4())
+        open_ai_chat_assistant_id = str(uuid4())
 
         instance = self._save_entity(
             Tenant(
@@ -30,9 +31,9 @@ class TestTenantRepository(BaseRepositoryTest):
             )
         )
 
-        self._repository.update(instance, vector_store_id)
+        self._repository.update(instance, vector_store_id, open_ai_chat_assistant_id)
 
-        self.assertTrue(self._exists(tenant_id, vector_store_id))
+        self.assertTrue(self._exists(tenant_id, vector_store_id, open_ai_chat_assistant_id))
 
     def test_find_by_id(self):
         tenant_id = uuid4()
@@ -67,8 +68,14 @@ class TestTenantRepository(BaseRepositoryTest):
         self.assertEqual(name, instances[0].tenant_name)
 
     @staticmethod
-    def _exists(tenant_id: UUID, vector_store_id: str) -> bool:
-        return db.session.scalar(exists().where(Tenant.id == tenant_id).where(Tenant.open_ai_vector_store_id == vector_store_id).select())
+    def _exists(tenant_id: UUID, vector_store_id: str, open_ai_chat_assistant_id: str) -> bool:
+        return db.session.scalar(
+            exists()
+            .where(Tenant.id == tenant_id)
+            .where(Tenant.open_ai_vector_store_id == vector_store_id)
+            .where(Tenant.open_ai_chat_assistant_id == open_ai_chat_assistant_id)
+            .select()
+        )
 
     @staticmethod
     def _save_entity(entity):

@@ -23,6 +23,7 @@ class Tenant(Base):
     created_at = Column(DateTime, nullable=False, default=dt.datetime.now(ZoneInfo("UTC")))
     updated_at = Column(DateTime, nullable=False, default=dt.datetime.now(ZoneInfo("UTC")))
     open_ai_vector_store_id = Column(String, nullable=True)
+    open_ai_chat_assistant_id = Column(String, nullable=True)
 
 
 class User(Base):

@@ -3,6 +3,7 @@ import os
 from typing import Optional
 
 from openai import OpenAI
+from openai.types.beta import VectorStore
 
 
 class VectorStoreClient:
@@ -21,5 +22,11 @@ class VectorStoreClient:
             self.logger.error(f"Error when uploading files to the vector store, vector_store_id={vector_store_id}, error={e}")
             return False
 
-    def create(self):
-        return self._client.beta.vector_stores.create().id
+    def create(self, name: Optional[str] = None) -> str:
+        if name is None:
+            return self._client.beta.vector_stores.create().id
+        return self._client.beta.vector_stores.create(name=name).id
+
+    def find_by_id(self, vector_store_id: str) -> VectorStore:
+        all_vector_stores = self._client.beta.vector_stores.list(limit=100)
+        return next(filter(lambda a: a.id == vector_store_id, all_vector_stores), None)

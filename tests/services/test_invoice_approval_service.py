@@ -37,8 +37,7 @@ class TestInvoiceApprovalService(TestCase):
         self.mock_invoice_repository.find_by_id.return_value = mock_invoice
         self.mock_file_client.upload_file.return_value = file_id
         self.mock_vector_store_client.upload_files_by_ids.return_value = None
-        self.mock_tenant_repository.find_by_id.return_value = MagicMock(open_ai_vector_store_id=None)
-        self.mock_vector_store_client.create.return_value = vector_store_id
+        self.mock_tenant_repository.find_by_id.return_value = MagicMock(open_ai_vector_store_id=vector_store_id)
 
         attributes_to_update = {"some_key": "some_value"}
 

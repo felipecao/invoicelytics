@@ -29,6 +29,7 @@ class TestAssistantClient(TestCase):
             description=description,
             instructions=instructions,
             tools=tools,
+            tool_resources=None,
             temperature=0.01,
             top_p=1.0,
         )
