@@ -4,13 +4,7 @@
 
 {% block content %}
 <div class="row mb-3">
-    <div class="col-auto">
-        <a href="{{ url_for('home_bp.home') }}" class="btn btn-secondary">Back to Home</a>
-    </div>
-    <div class="col text-center">
-        <h1 class="mb-0">Upload an invoice</h1>
-    </div>
-    <div class="col-auto"></div>
+    <h1 class="mb-0">Upload an invoice</h1>
 </div>
 <form action="/upload" method="post" enctype="multipart/form-data" class="mt-4">
     <div class="form-group">

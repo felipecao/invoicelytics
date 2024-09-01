@@ -10,27 +10,28 @@
             <form action="{{ url_for('invoice_bp.approve_invoice', invoice_id=invoice.id) }}" method="post">
                 <div class="form-group">
                     <label for="invoiceNumber">Invoice Number</label>
-                    <input type="text" class="form-control" id="invoiceNumber" name="invoice_number" value="{{ invoice.invoice_number }}">
+                    <input type="text" class="form-control" id="invoiceNumber" name="invoice_number" value="{{ invoice.invoice_number }}" {% if readonly %}readonly{% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="payeeName">Payee Name</label>
-                    <input type="text" class="form-control" id="payeeName" name="payee_name" value="{{ invoice.payee_name }}">
+                    <input type="text" class="form-control" id="payeeName" name="payee_name" value="{{ invoice.payee_name }}" {% if readonly %}readonly{% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="dueDate">Due Date</label>
-                    <input type="text" class="form-control" id="dueDate" name="due_date" value="{{ invoice.due_date }}">
+                    <input type="text" class="form-control" id="dueDate" name="due_date" value="{{ invoice.due_date }}" {% if readonly %}readonly{% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="totalAmount">Total Amount</label>
-                    <input type="text" class="form-control" id="totalAmount" name="total_amount" value="{{ invoice.total_amount }}">
+                    <input type="text" class="form-control" id="totalAmount" name="total_amount" value="{{ invoice.total_amount }}" {% if readonly %}readonly{% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="status">Status</label>
                     <input type="text" class="form-control" id="status" name="status" value="{{ invoice.status }}" readonly>
                 </div>
+                {% if not readonly %}
                 <button type="submit" class="btn btn-primary">Approve</button>
                 <button type="submit" formaction="{{ url_for('invoice_bp.reject_invoice', invoice_id=invoice.id) }}" class="btn btn-danger">Reject</button>
-                <a href="{{ url_for('home_bp.home') }}" class="btn btn-secondary">Back to Home</a>
+                {% endif %}
             </form>
         </div>
         <div class="col-md-6">

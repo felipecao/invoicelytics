@@ -56,12 +56,14 @@ class InvoiceBlueprint:
         @self.blueprint.route("/invoices", methods=["GET"])
         def list_processed_invoices():
             invoices = self._invoice_repository.find_by_status(InvoiceStatus.PROCESSED, self._TENANT_ID)
-            return render_template("list_invoices.html", invoices=invoices)
+            approved_invoices = self._invoice_repository.find_by_status(InvoiceStatus.APPROVED, self._TENANT_ID)
+            return render_template("list_invoices.html", invoices=invoices, approved_invoices=approved_invoices)
 
         @self.blueprint.route("/invoice/<uuid:invoice_id>", methods=["GET"])
         def view_invoice(invoice_id):
             invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
-            return render_template("invoice_detail.html", invoice=invoice)
+            readonly = request.args.get("readonly", "false").lower() == "true"
+            return render_template("invoice_detail.html", invoice=invoice, readonly=readonly)
 
         @self.blueprint.route("/invoice/pdf/<uuid:invoice_id>", methods=["GET"])
         def serve_invoice_pdf(invoice_id):
