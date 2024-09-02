@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Optional
 from uuid import UUID
 
@@ -50,5 +51,14 @@ class ChatAssistant:
             return None, thread_id
 
         messages = self._message_client.list(thread_id=thread_id)
+        answer = self._remove_citations(messages.data[0].content[0].text.value)
 
-        return messages.data[0].content[0].text.value, thread_id
+        return answer, thread_id
+
+    @staticmethod
+    def _remove_citations(text: str) -> str:
+        # Regular expression to match the pattern "【...】"
+        pattern = r"【[^】]*】"
+        # Substitute the pattern with an empty string
+        cleaned_text = re.sub(pattern, "", text)
+        return cleaned_text.strip()

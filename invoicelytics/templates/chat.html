@@ -5,16 +5,19 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Chat with Emma</h1>
-    <div id="chat-box" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
-        <!-- Chat messages will be appended here -->
+    <div class="card">
+        <div class="card-body" id="chat-box" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+            <!-- Chat messages will be appended here -->
+            <div id="empty-chat" class="text-center text-muted">Start the conversation by typing a message below.</div>
+        </div>
     </div>
     <div class="input-group mt-3">
-        <input type="text" id="user-message" class="form-control" placeholder="Type your message...">
+        <input type="text" id="user-message" class="form-control" placeholder="Type your message..." style="border-radius: 0.25rem;">
         <div class="input-group-append">
             <button class="btn btn-primary" id="send-button">Send</button>
         </div>
     </div>
-    <div id="spinner" class="spinner-border text-primary mt-3" role="status" style="display: none;">
+    <div id="spinner" class="spinner-border text-primary mt-3 mx-auto" role="status" style="display: none;">
         <span class="sr-only">Loading...</span>
     </div>
 </div>
@@ -36,19 +39,20 @@
             .then(response => response.json())
             .then(data => {
                 const chatBox = document.getElementById('chat-box');
+                const emptyChat = document.getElementById('empty-chat');
+                if (emptyChat) {
+                    emptyChat.remove();
+                }
+
                 const userMessageElement = document.createElement('div');
-                userMessageElement.textContent = 'You: ' + userMessage;
+                userMessageElement.className = 'alert alert-primary';
+                userMessageElement.innerHTML = `<strong>You:</strong> ${userMessage} <span class="text-muted small">${new Date().toLocaleTimeString()}</span>`;
                 chatBox.appendChild(userMessageElement);
 
-                const breakElement = document.createElement('br');
-                chatBox.appendChild(breakElement);
-
                 const assistantMessageElement = document.createElement('div');
-                assistantMessageElement.textContent = 'Emma: ' + data.response;
+                assistantMessageElement.className = 'alert alert-secondary';
+                assistantMessageElement.innerHTML = `<strong>Emma:</strong> ${data.response} <span class="text-muted small">${new Date().toLocaleTimeString()}</span>`;
                 chatBox.appendChild(assistantMessageElement);
-
-                const breakElement2 = document.createElement('br');
-                chatBox.appendChild(breakElement2);
 
                 document.getElementById('user-message').value = '';
                 chatBox.scrollTop = chatBox.scrollHeight;
