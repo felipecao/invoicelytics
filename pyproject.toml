@@ -23,6 +23,7 @@ testcontainers-postgres = "^0.0.1rc1"
 flake8 = "^7.1.1"
 openai = "^1.42.0"
 black = "^24.8.0"
+flask-login = "^0.6.3"
 
 [build-system]
 requires = ["poetry-core"]

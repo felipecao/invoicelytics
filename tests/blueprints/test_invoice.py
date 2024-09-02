@@ -38,8 +38,13 @@ class TestInvoiceBlueprint(TestCase):
             open_ai_vector_store_id=test_faker.ssn(), open_ai_chat_assistant_id=test_faker.ssn()
         )
 
+    @patch("invoicelytics.blueprints.invoice.current_user")
     @patch("invoicelytics.blueprints.invoice.flash")
-    def test_post_uploaded_file(self, mock_flash):
+    def test_post_uploaded_file(self, mock_flash, mock_current_user):
+        tenant_id = uuid4()
+
+        mock_current_user.tenant_id.return_value = str(tenant_id)
+
         file_contents = BytesIO(b"my file contents")
         file_name = test_faker.file_name(extension="pdf")
         file_path = test_faker.file_path()
@@ -57,8 +62,12 @@ class TestInvoiceBlueprint(TestCase):
         )
         self.assertEqual(response.status_code, 302)
 
+    @patch("invoicelytics.blueprints.invoice.current_user")
     @patch("invoicelytics.blueprints.invoice.render_template")
-    def test_load_upload_page(self, mock_render_template):
+    def test_load_upload_page(self, mock_render_template, mock_current_user):
+        tenant_id = uuid4()
+
+        mock_current_user.tenant_id.return_value = str(tenant_id)
         mock_render_template.return_value = "mock_rendered_template"
 
         response = self.client.get("/upload")

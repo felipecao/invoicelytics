@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for, send_file
+from flask_login import login_required, current_user
 
 from invoicelytics.entities.domain_entities import InvoiceStatus
 from invoicelytics.repository.invoice_repository import InvoiceRepository
@@ -35,7 +36,11 @@ class InvoiceBlueprint:
 
     def _add_routes(self):
         @self.blueprint.route("/upload", methods=["POST"])
+        @login_required
         def post_uploaded_file():
+            tenant_id = current_user.tenant_id  # Access tenant_id from the logged-in user
+            self._logger.info(f"Logged user's tenant_id: {tenant_id}")
+
             _ensure_openai_assets_are_created(self._TENANT_ID)
 
             uploaded_files = request.files.values()
@@ -49,23 +54,30 @@ class InvoiceBlueprint:
             return redirect(url_for("invoice_bp.load_upload_page"))
 
         @self.blueprint.route("/upload", methods=["GET"])
+        @login_required
         def load_upload_page():
+            tenant_id = current_user.tenant_id  # Access tenant_id from the logged-in user
+            self._logger.info(f"Logged user's tenant_id: {tenant_id}")
+
             _ensure_openai_assets_are_created(self._TENANT_ID)
             return render_template("upload.html")
 
         @self.blueprint.route("/invoices", methods=["GET"])
+        @login_required
         def list_processed_invoices():
             invoices = self._invoice_repository.find_by_status(InvoiceStatus.PROCESSED, self._TENANT_ID)
             approved_invoices = self._invoice_repository.find_by_status(InvoiceStatus.APPROVED, self._TENANT_ID)
             return render_template("list_invoices.html", invoices=invoices, approved_invoices=approved_invoices)
 
         @self.blueprint.route("/invoice/<uuid:invoice_id>", methods=["GET"])
+        @login_required
         def view_invoice(invoice_id):
             invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
             readonly = request.args.get("readonly", "false").lower() == "true"
             return render_template("invoice_detail.html", invoice=invoice, readonly=readonly)
 
         @self.blueprint.route("/invoice/pdf/<uuid:invoice_id>", methods=["GET"])
+        @login_required
         def serve_invoice_pdf(invoice_id):
             invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
             if invoice and invoice.pdf_file_path:
@@ -74,6 +86,7 @@ class InvoiceBlueprint:
                 return "File not found", 404
 
         @self.blueprint.route("/invoice/approve/<uuid:invoice_id>", methods=["POST"])
+        @login_required
         def approve_invoice(invoice_id):
             _ensure_openai_assets_are_created(self._TENANT_ID)
             invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
@@ -95,6 +108,7 @@ class InvoiceBlueprint:
             return list_processed_invoices()
 
         @self.blueprint.route("/invoice/reject/<uuid:invoice_id>", methods=["POST"])
+        @login_required
         def reject_invoice(invoice_id):
             invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
 

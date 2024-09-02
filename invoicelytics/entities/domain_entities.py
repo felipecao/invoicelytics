@@ -1,9 +1,11 @@
 import datetime as dt
 from zoneinfo import ZoneInfo
 
+from flask_login import UserMixin
 from sqlalchemy import Column, String, Date, Float, Enum, DateTime, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
+from werkzeug.security import generate_password_hash, check_password_hash
 
 Base = declarative_base()
 
@@ -26,7 +28,7 @@ class Tenant(Base):
     open_ai_chat_assistant_id = Column(String, nullable=True)
 
 
-class User(Base):
+class User(Base, UserMixin):
     __tablename__ = "users"
     __table_args__ = (
         UniqueConstraint("tenant_id", "username", name="uq_username_tenant"),
@@ -41,6 +43,15 @@ class User(Base):
     created_at = Column(DateTime, nullable=False, default=dt.datetime.now(ZoneInfo("UTC")))
     updated_at = Column(DateTime, nullable=False, default=dt.datetime.now(ZoneInfo("UTC")))
     last_login_at = Column(DateTime, nullable=True)
+
+    def get_id(self):
+        return str(self.id)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 class Invoice(Base):
