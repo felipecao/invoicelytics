@@ -31,8 +31,8 @@ class Tenant(Base):
 class User(Base, UserMixin):
     __tablename__ = "users"
     __table_args__ = (
-        UniqueConstraint("tenant_id", "username", name="uq_username_tenant"),
-        UniqueConstraint("tenant_id", "email", name="uq_email_tenant"),
+        UniqueConstraint("username", name="uq_username"),
+        UniqueConstraint("email", name="uq_email"),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, nullable=False, index=True)
