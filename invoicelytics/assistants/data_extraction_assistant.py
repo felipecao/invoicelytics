@@ -47,7 +47,7 @@ class DataExtractionAssistant:
 
                 It is very important that you do not generate any imaginary values.
                 Only extract information that is clearly visible and verifiable from the invoice.
-                If any information is not present or cannot be confidently extracted, please return "N/A".
+                If any information is not present or cannot be confidently extracted, please return null.
 
                 Please do not generate random values. Be concise. Don't provide any explanations about your reasoning.
 
