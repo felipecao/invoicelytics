@@ -1,6 +1,7 @@
 import json
 from unittest import TestCase
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 from flask import Flask
 
@@ -10,6 +11,7 @@ from tests import test_faker
 
 
 class TestChatBlueprint(TestCase):
+
     def setUp(self):
         self._mock_chat_assistant = MagicMock(spec=ChatAssistant)
         self.app = Flask(__name__)
@@ -19,7 +21,11 @@ class TestChatBlueprint(TestCase):
         self.app.register_blueprint(self.chat_blueprint.blueprint)
         self.client = self.app.test_client()
 
-    def test_message_and_get_response(self):
+    @patch("flask_login.utils._get_user")
+    def test_message_and_get_response(self, mock_get_user):
+        tenant_id = str(uuid4())
+        mock_get_user.return_value = MagicMock(is_authenticated=True, tenant_id=tenant_id)
+
         message = test_faker.sentence()
         thread_id = test_faker.ssn()
         answer = test_faker.sentence()
@@ -37,7 +43,13 @@ class TestChatBlueprint(TestCase):
         self.assertEqual(response.json["response"], answer)
         self.assertEqual(response.json["thread_id"], thread_id)
 
-    def test_message_and_get_response_without_thread_id(self):
+        self._mock_chat_assistant.ask_question.assert_called_once_with(message, tenant_id, thread_id)
+
+    @patch("flask_login.utils._get_user")
+    def test_message_and_get_response_without_thread_id(self, mock_get_user):
+        tenant_id = str(uuid4())
+        mock_get_user.return_value = MagicMock(is_authenticated=True, tenant_id=tenant_id)
+
         message = test_faker.sentence()
         thread_id = test_faker.ssn()
         answer = test_faker.sentence()
@@ -54,7 +66,12 @@ class TestChatBlueprint(TestCase):
         self.assertEqual(response.json["response"], answer)
         self.assertEqual(response.json["thread_id"], thread_id)
 
-    def test_message_and_get_response_without_message(self):
+        self._mock_chat_assistant.ask_question.assert_called_once_with(message, tenant_id, None)
+
+    @patch("flask_login.utils._get_user")
+    def test_message_and_get_response_without_message(self, mock_get_user):
+        mock_get_user.return_value = MagicMock(is_authenticated=True)
+
         thread_id = test_faker.ssn()
         answer = test_faker.sentence()
 
@@ -68,3 +85,5 @@ class TestChatBlueprint(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json["error"], "No message provided")
+
+        self._mock_chat_assistant.ask_question.assert_not_called()

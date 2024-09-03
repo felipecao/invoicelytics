@@ -22,9 +22,6 @@ class InvoiceBlueprint:
         invoice_repository: Optional[InvoiceRepository] = None,
         tenant_repository: Optional[TenantRepository] = None,
     ):
-        # TODO remove this fixed tenant id. This should be fetched from the accounts table based on the logged user.
-        self._TENANT_ID = UUID("123e4567-e89b-12d3-a456-426614174000")
-        # end TODO
         self._logger = logging.getLogger(__name__)
         self._invoice_creation_service = invoice_creation_service or InvoiceCreationService()
         self._invoice_approval_service = invoice_approval_service or InvoiceApprovalService()
@@ -38,16 +35,13 @@ class InvoiceBlueprint:
         @self.blueprint.route("/upload", methods=["POST"])
         @login_required
         def post_uploaded_file():
-            tenant_id = current_user.tenant_id  # Access tenant_id from the logged-in user
-            self._logger.info(f"Logged user's tenant_id: {tenant_id}")
-
-            _ensure_openai_assets_are_created(self._TENANT_ID)
+            _ensure_openai_assets_are_created(current_user.tenant_id)
 
             uploaded_files = request.files.values()
 
             for uploaded_file in uploaded_files:
                 file_path = self._upload_folder.save_to_filesystem(uploaded_file)
-                self._invoice_creation_service.create_invoice(uuid4(), file_path, self._TENANT_ID)
+                self._invoice_creation_service.create_invoice(uuid4(), file_path, current_user.tenant_id)
                 self._logger.info(f"File successfully uploaded: {file_path}")
 
             flash("Your upload was successful. Please wait a few seconds while we process your invoice...")
@@ -56,30 +50,27 @@ class InvoiceBlueprint:
         @self.blueprint.route("/upload", methods=["GET"])
         @login_required
         def load_upload_page():
-            tenant_id = current_user.tenant_id  # Access tenant_id from the logged-in user
-            self._logger.info(f"Logged user's tenant_id: {tenant_id}")
-
-            _ensure_openai_assets_are_created(self._TENANT_ID)
+            _ensure_openai_assets_are_created(current_user.tenant_id)
             return render_template("upload.html")
 
         @self.blueprint.route("/invoices", methods=["GET"])
         @login_required
         def list_processed_invoices():
-            invoices = self._invoice_repository.find_by_status(InvoiceStatus.PROCESSED, self._TENANT_ID)
-            approved_invoices = self._invoice_repository.find_by_status(InvoiceStatus.APPROVED, self._TENANT_ID)
+            invoices = self._invoice_repository.find_by_status(InvoiceStatus.PROCESSED, current_user.tenant_id)
+            approved_invoices = self._invoice_repository.find_by_status(InvoiceStatus.APPROVED, current_user.tenant_id)
             return render_template("list_invoices.html", invoices=invoices, approved_invoices=approved_invoices)
 
         @self.blueprint.route("/invoice/<uuid:invoice_id>", methods=["GET"])
         @login_required
         def view_invoice(invoice_id):
-            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+            invoice = self._invoice_repository.find_by_id(invoice_id, current_user.tenant_id)
             readonly = request.args.get("readonly", "false").lower() == "true"
             return render_template("invoice_detail.html", invoice=invoice, readonly=readonly)
 
         @self.blueprint.route("/invoice/pdf/<uuid:invoice_id>", methods=["GET"])
         @login_required
         def serve_invoice_pdf(invoice_id):
-            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+            invoice = self._invoice_repository.find_by_id(invoice_id, current_user.tenant_id)
             if invoice and invoice.pdf_file_path:
                 return send_file(invoice.pdf_file_path)
             else:
@@ -88,13 +79,13 @@ class InvoiceBlueprint:
         @self.blueprint.route("/invoice/approve/<uuid:invoice_id>", methods=["POST"])
         @login_required
         def approve_invoice(invoice_id):
-            _ensure_openai_assets_are_created(self._TENANT_ID)
-            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+            _ensure_openai_assets_are_created(current_user.tenant_id)
+            invoice = self._invoice_repository.find_by_id(invoice_id, current_user.tenant_id)
 
             if invoice:
                 self._invoice_approval_service.execute(
                     invoice_id,
-                    self._TENANT_ID,
+                    current_user.tenant_id,
                     {
                         "invoice_number": request.form.get("invoice_number"),
                         "payee_name": request.form.get("payee_name"),
@@ -110,7 +101,7 @@ class InvoiceBlueprint:
         @self.blueprint.route("/invoice/reject/<uuid:invoice_id>", methods=["POST"])
         @login_required
         def reject_invoice(invoice_id):
-            invoice = self._invoice_repository.find_by_id(invoice_id, self._TENANT_ID)
+            invoice = self._invoice_repository.find_by_id(invoice_id, current_user.tenant_id)
 
             if invoice:
                 self._invoice_repository.update(
