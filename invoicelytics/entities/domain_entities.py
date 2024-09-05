@@ -2,9 +2,10 @@ import datetime as dt
 from zoneinfo import ZoneInfo
 
 from flask_login import UserMixin
-from sqlalchemy import Column, String, Date, Float, Enum, DateTime, UniqueConstraint
+from sqlalchemy import Column, String, Date, Float, Enum, DateTime, UniqueConstraint, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
 Base = declarative_base()
@@ -67,8 +68,10 @@ class Invoice(Base):
     tax_amount = Column(Float, nullable=True)
     due_date = Column(Date, nullable=True)
     status = Column(Enum("created", "processed", "approved", "rejected", name="invoice_status_enum"), nullable=True)
-    uploaded_by = Column(UUID(as_uuid=True), nullable=True)
-    validated_by = Column(UUID(as_uuid=True), nullable=True)
+    uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    approved_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    uploader = relationship("User", foreign_keys=[uploaded_by])
+    approver = relationship("User", foreign_keys=[approved_by])
     pdf_file_path = Column(String, nullable=True)
     created_at = Column(DateTime, default=dt.datetime.now(ZoneInfo("UTC")), nullable=True)
     updated_at = Column(DateTime, default=dt.datetime.now(ZoneInfo("UTC")), nullable=True)
@@ -88,7 +91,7 @@ class Invoice(Base):
             "due_date": self.due_date.isoformat() if self.due_date else None,
             "status": self.status,
             "uploaded_by": str(self.uploaded_by) if self.uploaded_by else None,
-            "validated_by": str(self.validated_by) if self.validated_by else None,
+            "approved_by": str(self.approved_by) if self.approved_by else None,
             "pdf_file_path": self.pdf_file_path,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

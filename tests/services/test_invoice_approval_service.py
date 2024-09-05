@@ -28,6 +28,7 @@ class TestInvoiceApprovalService(TestCase):
     def test_run(self, mock_to_json_bytes):
         invoice_id = uuid4()
         tenant_id = uuid4()
+        logged_user_id = uuid4()
         file_id = "file_id"
         vector_store_id = "vector_store_id"
         mock_invoice = MagicMock(spec=Invoice)
@@ -41,7 +42,7 @@ class TestInvoiceApprovalService(TestCase):
 
         attributes_to_update = {"some_key": "some_value"}
 
-        self.service._run(invoice_id, tenant_id, attributes_to_update)
+        self.service._run(invoice_id, logged_user_id, tenant_id, attributes_to_update)
 
         self.mock_invoice_repository.find_by_id.assert_called_once_with(invoice_id, tenant_id)
         self.mock_file_client.upload_file.assert_called_once_with(
@@ -49,13 +50,15 @@ class TestInvoiceApprovalService(TestCase):
         )
         self.mock_vector_store_client.upload_files_by_ids.assert_called_once_with(vector_store_id, [file_id])
         self.mock_invoice_repository.update.assert_called_once_with(
-            mock_invoice, {"some_key": "some_value", "status": InvoiceStatus.APPROVED, "open_ai_json_file_id": file_id}
+            mock_invoice,
+            {"some_key": "some_value", "status": InvoiceStatus.APPROVED, "open_ai_json_file_id": file_id, "approved_by": logged_user_id},
         )
 
     @patch("invoicelytics.services.invoice_approval_service.to_json_bytes")
     def test_invoice_does_not_exist(self, mock_to_json_bytes):
         invoice_id = uuid4()
         tenant_id = uuid4()
+        logged_user_id = uuid4()
         mock_invoice = MagicMock(spec=Invoice)
         mock_invoice.to_dict.return_value = {"key": "value"}
         mock_to_json_bytes.return_value = b'{"key": "value"}'
@@ -64,7 +67,7 @@ class TestInvoiceApprovalService(TestCase):
 
         attributes_to_update = {"some_key": "some_value"}
 
-        self.service._run(invoice_id, tenant_id, attributes_to_update)
+        self.service._run(invoice_id, logged_user_id, tenant_id, attributes_to_update)
 
         self.mock_invoice_repository.find_by_id.assert_called_once_with(invoice_id, tenant_id)
         self.mock_file_client.upload_file.assert_not_called()

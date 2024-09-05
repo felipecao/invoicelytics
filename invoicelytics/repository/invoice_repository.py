@@ -38,6 +38,7 @@ class InvoiceRepository:
                 due_date=get_value(attributes_to_update, instance, "due_date"),
                 status=get_value(attributes_to_update, instance, "status"),
                 open_ai_json_file_id=get_value(attributes_to_update, instance, "open_ai_json_file_id"),
+                approved_by=get_value(attributes_to_update, instance, "approved_by"),
             )
         )
         db.session.commit()

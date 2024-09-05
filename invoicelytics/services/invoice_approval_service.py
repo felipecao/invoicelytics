@@ -24,7 +24,7 @@ class InvoiceApprovalService(BaseService):
         self._file_client = file_client or FileClient()
         self._vector_store_client = vector_store_client or VectorStoreClient()
 
-    def _run(self, invoice_id: UUID, tenant_id: UUID, attributes_to_update: dict):
+    def _run(self, invoice_id: UUID, approver_id: UUID, tenant_id: UUID, attributes_to_update: dict):
         invoice = self._invoice_repository.find_by_id(invoice_id, tenant_id)
 
         if invoice:
@@ -38,4 +38,5 @@ class InvoiceApprovalService(BaseService):
 
             attributes_to_update["status"] = InvoiceStatus.APPROVED
             attributes_to_update["open_ai_json_file_id"] = file_id
+            attributes_to_update["approved_by"] = approver_id
             self._invoice_repository.update(invoice, attributes_to_update)

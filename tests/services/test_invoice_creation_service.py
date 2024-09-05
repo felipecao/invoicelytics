@@ -28,12 +28,13 @@ class TestInvoiceCreationService(TestCase):
     def test_create_invoice(self):
         file_path = test_faker.file_path(extension="pdf")
         invoice_id = uuid4()
+        logged_user_id = uuid4()
         tenant_id = uuid4()
         open_ai_file_id = test_faker.text()
 
         self._mock_file_client.upload_file.return_value = open_ai_file_id
 
-        self._service.create_invoice(invoice_id, file_path, tenant_id)
+        self._service.create_invoice(invoice_id, file_path, logged_user_id, tenant_id)
 
         args, kwargs = self._mock_upload_folder.move_file.call_args_list[0]
         self.assertEqual(file_path, args[0])

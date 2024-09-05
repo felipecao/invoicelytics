@@ -40,9 +40,10 @@ class TestInvoiceBlueprint(TestCase):
     @patch("flask_login.utils._get_user")
     @patch("invoicelytics.blueprints.invoice.flash")
     def test_post_uploaded_file(self, mock_flash, mock_get_user):
+        logged_user_id = str(uuid4())
         tenant_id = str(uuid4())
 
-        mock_get_user.return_value = MagicMock(is_authenticated=True, tenant_id=tenant_id)
+        mock_get_user.return_value = MagicMock(is_authenticated=True, tenant_id=tenant_id, id=logged_user_id)
 
         file_contents = BytesIO(b"my file contents")
         file_name = test_faker.file_name(extension="pdf")
@@ -57,7 +58,7 @@ class TestInvoiceBlueprint(TestCase):
         response = self.client.post("/upload", data=data, content_type="multipart/form-data")
 
         self.assertEqual(response.status_code, 302)
-        self._mock_invoice_creation_service.create_invoice.assert_called_once_with(ANY, file_path, tenant_id)
+        self._mock_invoice_creation_service.create_invoice.assert_called_once_with(ANY, file_path, logged_user_id, tenant_id)
 
     @patch("flask_login.utils._get_user")
     @patch("invoicelytics.blueprints.invoice.render_template")
@@ -174,6 +175,7 @@ class TestInvoiceBlueprint(TestCase):
     @patch("invoicelytics.blueprints.invoice.render_template")
     @patch("invoicelytics.blueprints.invoice.flash")
     def test_approve_invoice_success(self, mock_flash, mock_render_template, mock_get_user):
+        logged_user_id = uuid4()
         invoice_id = uuid4()
         tenant_id = str(uuid4())
         mock_invoice = Invoice(
@@ -185,7 +187,7 @@ class TestInvoiceBlueprint(TestCase):
             status="created",
         )
 
-        mock_get_user.return_value = MagicMock(is_authenticated=True, tenant_id=tenant_id)
+        mock_get_user.return_value = MagicMock(is_authenticated=True, tenant_id=tenant_id, id=logged_user_id)
         mock_render_template.return_value = "mock_rendered_template"
         self._mock_invoice_repository.find_by_id.return_value = mock_invoice
 
@@ -206,6 +208,7 @@ class TestInvoiceBlueprint(TestCase):
 
         self._mock_invoice_approval_service.execute.assert_called_once_with(
             invoice_id,
+            logged_user_id,
             tenant_id,
             {
                 "invoice_number": "INV-001",

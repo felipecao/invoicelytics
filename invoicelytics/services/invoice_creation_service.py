@@ -26,7 +26,7 @@ class InvoiceCreationService:
         self._upload_folder = upload_folder or UploadFolder()
         self._file_client = file_client or FileClient()
 
-    def create_invoice(self, invoice_id: UUID, file_path: str, tenant_id: UUID):
+    def create_invoice(self, invoice_id: UUID, file_path: str, uploader_id: UUID, tenant_id: UUID):
         new_file_path = self._move_invoice_to_tenant_folder(invoice_id, file_path, tenant_id)
         file_id = self._upload_invoice_to_open_ai(invoice_id, new_file_path)
 
@@ -37,6 +37,7 @@ class InvoiceCreationService:
                 status=InvoiceStatus.CREATED,
                 pdf_file_path=new_file_path,
                 open_ai_pdf_file_id=file_id,
+                uploaded_by=uploader_id,
             )
         )
 

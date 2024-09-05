@@ -41,7 +41,7 @@ class InvoiceBlueprint:
 
             for uploaded_file in uploaded_files:
                 file_path = self._upload_folder.save_to_filesystem(uploaded_file)
-                self._invoice_creation_service.create_invoice(uuid4(), file_path, current_user.tenant_id)
+                self._invoice_creation_service.create_invoice(uuid4(), file_path, current_user.id, current_user.tenant_id)
                 self._logger.info(f"File successfully uploaded: {file_path}")
 
             flash("Your upload was successful. Please wait a few seconds while we process your invoice...")
@@ -85,6 +85,7 @@ class InvoiceBlueprint:
             if invoice:
                 self._invoice_approval_service.execute(
                     invoice_id,
+                    current_user.id,
                     current_user.tenant_id,
                     {
                         "invoice_number": request.form.get("invoice_number"),
