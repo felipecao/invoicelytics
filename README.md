@@ -1,10 +1,21 @@
 # Invoicelytics
-> TBD TODO Add URL here
+> https://invoicelytics.onrender.com
 
 Invoicelytics is a product that is meant to make it much easier working with invoices. All you need to do is uploading invoices in PDF format into Invoicelytics. Once that's done, you can ask questions about the invoices, such as:
 - how much have i spent in the last 30 days?
 - how many invoices coming from company ABC have been uploaded?
 - how much money is due to company ABC?
+
+# Using the platform
+1. Browse to https://invoicelytics.onrender.com (it might take a bit to load, we're using the free tier of render.com).
+2. Login using the credentials that have been provided to you on a separate e-mail.
+3. Use the navigation menu and browse to `Invoices` (top right corner of the screen).
+4. In this screen, you'll see information about all invoices that have been uploaded into the system, as well as invoices that are pending approval.
+5. Click on `Upload an invoice` and select the invoice you'd like to work on (**IMPORTANT**: the system only accepts invoices in **PDF** format).
+6. Once you upload the invoice, it's going to be processed in background. In the meanwhile, you can go back to the `Invoices` page while Emma, our Intelligent Assistant, works on it.
+7. Once Emma finishes her job, you'll see the new invoice under the `Invoices pending approval` section. You can click on `Review` to check its details.
+8. At the invoice detail page, you can review if Emma did a good job and extracted the data correctly from the invoice. You can edit the data and either approve or reject it.
+9. Once the invoice is approved, you can browse to `Chat` and ask Emma questions about the approved invoices, such as `How many invoices are there in the system?`, or `How many invoices from vendor X are due this week?` or any other questions about the invoices.
 
 # Running the project locally
 1. Make sure you have Python installed and Docker installed
