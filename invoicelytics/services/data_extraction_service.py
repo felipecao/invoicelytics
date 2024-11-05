@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Optional
 from uuid import UUID
 
@@ -25,7 +24,3 @@ class DataExtractionService(BaseService):
         extracted_data_points["status"] = InvoiceStatus.PROCESSED
 
         self._invoice_repository.update(invoice, extracted_data_points)
-
-    @staticmethod
-    def _build_invoice_path(invoice_id: UUID, tenant_id: UUID):
-        return os.path.join(os.environ["UPLOAD_FOLDER"], f"tenants/{tenant_id}/invoices/{invoice_id}.pdf")

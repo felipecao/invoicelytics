@@ -32,6 +32,7 @@ class TestInvoiceApprovalService(TestCase):
         file_id = "file_id"
         vector_store_id = "vector_store_id"
         mock_invoice = MagicMock(spec=Invoice)
+        mock_invoice.id = invoice_id
         mock_invoice.to_dict.return_value = {"key": "value"}
         mock_to_json_bytes.return_value = b'{"key": "value"}'
 

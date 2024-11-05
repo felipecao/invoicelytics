@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from invoicelytics.data_structures.uploaded_file import UploadedFile
-from invoicelytics.entities.domain_entities import InvoiceStatus
+from invoicelytics.entities.domain_entities import InvoiceStatus, Invoice
 from invoicelytics.integrations.open_ai.file_client import FileClient
 from invoicelytics.integrations.open_ai.vector_store_client import VectorStoreClient
 from invoicelytics.repository.invoice_repository import InvoiceRepository
@@ -28,15 +28,20 @@ class InvoiceApprovalService(BaseService):
         invoice = self._invoice_repository.find_by_id(invoice_id, tenant_id)
 
         if invoice:
-            file = UploadedFile(f"{invoice_id}.json", to_json_bytes(invoice.to_dict()), "application/json")
-            tenant = self._tenant_repository.find_by_id(tenant_id)
-
-            vector_store_id = tenant.open_ai_vector_store_id
-            file_id = self._file_client.upload_file(file)
-
-            self._vector_store_client.upload_files_by_ids(vector_store_id, [file_id])
+            file_id = self._upload_approved_invoice_into_vector_store(invoice)
 
             attributes_to_update["status"] = InvoiceStatus.APPROVED
             attributes_to_update["open_ai_json_file_id"] = file_id
             attributes_to_update["approved_by"] = approver_id
             self._invoice_repository.update(invoice, attributes_to_update)
+
+    def _upload_approved_invoice_into_vector_store(self, invoice: Invoice) -> str:
+        file = UploadedFile(f"{invoice.id}.json", to_json_bytes(invoice.to_dict()), "application/json")
+        tenant = self._tenant_repository.find_by_id(invoice.tenant_id)
+
+        vector_store_id = tenant.open_ai_vector_store_id
+        file_id = self._file_client.upload_file(file)
+
+        self._vector_store_client.upload_files_by_ids(vector_store_id, [file_id])
+
+        return file_id
