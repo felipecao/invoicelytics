@@ -11,8 +11,6 @@ from invoicelytics.repository.tenant_repository import TenantRepository
 
 class ChatAssistant:
 
-    NAME_PREFIX = "emma_chat_assistant_"
-
     def __init__(
         self,
         thread_client: Optional[ThreadClient] = None,
