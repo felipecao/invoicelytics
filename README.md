@@ -33,7 +33,7 @@ Invoicelytics is a product that is meant to make it much easier working with inv
 
 # High level description of folders
 
-# invoicelytics
+### invoicelytics
 This is the main application directory containing the core logic and functionality of the Invoicelytics project. It includes various submodules and components such as blueprints, services, repositories, and integrations.
 
 - **assistants**: Contains modules related to assistant functionalities, such as data extraction and chat assistants.
@@ -47,11 +47,11 @@ This is the main application directory containing the core logic and functionali
 - **support**: Provides utility functions and helper classes used across the application.
 - **templates**: Stores HTML templates for rendering the web pages.
 
-# db-migrations
+### db-migrations
 Contains SQL migration scripts for setting up and updating the database schema.
 
-# static
+### static
 Houses static assets such as CSS, JavaScript, and image files used in the web application.
 
-# templates
+### templates
 Includes HTML templates used by Flask to render the web pages.
