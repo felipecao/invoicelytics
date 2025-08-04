@@ -7,7 +7,7 @@ from unittest import TestCase
 from sqlalchemy.orm import sessionmaker, scoped_session
 from testcontainers.postgres import PostgresContainer
 
-from invoicelytics.run import create_app, db
+from invoicelytics.run import _create_base_app, db
 
 
 class BaseRepositoryTest(TestCase):
@@ -21,7 +21,7 @@ class BaseRepositoryTest(TestCase):
         os.environ["FLASK_SECRET_KEY"] = test_faker.word()
         os.environ["UPLOAD_FOLDER"] = "/tmp"
 
-        cls.app = create_app()
+        cls.app = _create_base_app()
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
 

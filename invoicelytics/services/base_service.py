@@ -1,6 +1,6 @@
 import logging
 
-from invoicelytics.run import create_app
+from invoicelytics.run import get_activity_app
 
 
 class BaseService:
@@ -10,7 +10,7 @@ class BaseService:
 
     def execute(self, *args, **kwargs):
         try:
-            with create_app().app_context():
+            with get_activity_app().app_context():
                 return self._run(*args, **kwargs)
         except Exception as e:
             logging.error(f"Error while executing service, error: {e}")

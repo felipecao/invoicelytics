@@ -11,5 +11,6 @@ exclude =
     dist,
     *.rdb,
     .venv,
+    run_invoice_worker.py,
 max-complexity = 15
 max-line-length = 140

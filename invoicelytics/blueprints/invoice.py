@@ -64,14 +64,14 @@ class InvoiceBlueprint:
 
         @self.blueprint.route("/upload", methods=["POST"])
         @login_required
-        def post_uploaded_file():
+        async def post_uploaded_file():
             _ensure_openai_assets_are_created(current_user.tenant_id)
 
             uploaded_files = request.files.values()
 
             for uploaded_file in uploaded_files:
                 file_path = self._upload_folder.save_to_filesystem(uploaded_file)
-                self._invoice_creation_service.create_invoice(uuid4(), file_path, current_user.id, current_user.tenant_id)
+                await self._invoice_creation_service.create_invoice(uuid4(), file_path, current_user.id, current_user.tenant_id)
                 self._logger.info(f"File successfully uploaded: {file_path}")
 
             flash("Your upload was successful. Please wait a few seconds while we process your invoice...")
