@@ -1,48 +1,48 @@
+import asyncio
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from uuid import uuid4
 
-from invoicelytics.entities.domain_entities import InvoiceStatus
-from invoicelytics.integrations.open_ai.file_client import FileClient
-from invoicelytics.repository.invoice_repository import InvoiceRepository
-from invoicelytics.services.data_extraction_service import DataExtractionService
+from temporalio.client import Client
+
 from invoicelytics.services.invoice_creation_service import InvoiceCreationService
-from invoicelytics.support.os_utils import UploadFolder
+from invoicelytics.temporal.parameters import InvoiceInferenceWorkflowParams
+from invoicelytics.temporal.queues import INVOICE_QUEUE_NAME
+from invoicelytics.temporal.workflow.invoice import InvoiceInferenceWorkflow
 from tests import test_faker
 
 
 class TestInvoiceCreationService(TestCase):
     def setUp(self):
-        self._mock_invoice_repository = MagicMock(spec=InvoiceRepository)
-        self._mock_data_extraction_service = MagicMock(spec=DataExtractionService)
-        self._mock_upload_folder = MagicMock(spec=UploadFolder)
-        self._mock_file_client = MagicMock(spec=FileClient)
+        self._mock_temporal_client = MagicMock(spec=Client)
+        self._mock_temporal_client.start_workflow = AsyncMock()
         self._service = InvoiceCreationService(
-            invoice_repository=self._mock_invoice_repository,
-            data_extraction_service=self._mock_data_extraction_service,
-            upload_folder=self._mock_upload_folder,
-            file_client=self._mock_file_client,
+            temporal_client=self._mock_temporal_client,
         )
 
-    @patch.dict("os.environ", {"UPLOAD_FOLDER": "/tmp/test"})
-    def test_create_invoice(self):
+    def test_create_invoice_calls_temporal_workflow_with_correct_parameters(self):
         file_path = test_faker.file_path(extension="pdf")
         invoice_id = uuid4()
-        logged_user_id = uuid4()
+        uploader_id = uuid4()
         tenant_id = uuid4()
-        open_ai_file_id = test_faker.text()
 
-        self._mock_file_client.upload_file.return_value = open_ai_file_id
+        asyncio.run(self._service.create_invoice(invoice_id, file_path, uploader_id, tenant_id))
 
-        self._service.create_invoice(invoice_id, file_path, logged_user_id, tenant_id)
+        self._mock_temporal_client.start_workflow.assert_called_once()
 
-        args, kwargs = self._mock_upload_folder.move_file.call_args_list[0]
-        self.assertEqual(file_path, args[0])
-        self.assertEqual(f"/tmp/test/tenants/{tenant_id}/invoices/{invoice_id}.pdf", args[1])
+        call_args = self._mock_temporal_client.start_workflow.call_args
+        workflow_func = call_args[0][0]
+        params = call_args[0][1]
+        workflow_id = call_args[1]["id"]
+        task_queue = call_args[1]["task_queue"]
 
-        args, kwargs = self._mock_invoice_repository.save.call_args_list[0]
-        self.assertEqual(invoice_id, args[0].id)
-        self.assertEqual(tenant_id, args[0].tenant_id)
-        self.assertEqual(InvoiceStatus.CREATED, args[0].status)
-        self.assertEqual(open_ai_file_id, args[0].open_ai_pdf_file_id)
-        self.assertEqual(f"/tmp/test/tenants/{tenant_id}/invoices/{invoice_id}.pdf", args[0].pdf_file_path)
+        self.assertEqual(workflow_func, InvoiceInferenceWorkflow.run)
+
+        self.assertIsInstance(params, InvoiceInferenceWorkflowParams)
+        self.assertEqual(params.invoice_id, invoice_id)
+        self.assertEqual(params.file_path, file_path)
+        self.assertEqual(params.uploader_id, uploader_id)
+        self.assertEqual(params.tenant_id, tenant_id)
+
+        self.assertEqual(workflow_id, "invoice-workflow")
+        self.assertEqual(task_queue, INVOICE_QUEUE_NAME)

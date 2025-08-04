@@ -70,7 +70,7 @@ class DataExtractionAssistant:
         for dp in data_points:
             description = dp.description
             field_type = dp.data_type
-            additional_info = f"If there is no clear '{dp.name}' please return 'N/A'."
+            additional_info = f"If there is no clear '{dp.name}' please return null."
             formatted_string += f"- `{dp.name}` [type: {field_type}]: {description}. {additional_info}\n"
         return formatted_string.strip()
 
